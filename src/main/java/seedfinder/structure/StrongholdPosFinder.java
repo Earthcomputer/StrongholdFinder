@@ -1,6 +1,5 @@
-package seedfinder.stronghold;
+package seedfinder.structure;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -89,7 +88,7 @@ public class StrongholdPosFinder {
 		Stronghold stronghold;
 		do {
 			stronghold = new Stronghold(rand, location);
-		} while (stronghold.components.isEmpty() || stronghold.getPortalRoom() == null);
+		} while (stronghold.getComponents().isEmpty() || stronghold.getPortalRoom() == null);
 		return stronghold;
 	}
 
@@ -129,9 +128,9 @@ public class StrongholdPosFinder {
 						(chunkZ << 4) + 8 + 15);
 
 				// Generate the stronghold components that are in the chunk
-				Iterator<StrongholdGen.Component> itr = stronghold.components.iterator();
+				Iterator<Component> itr = stronghold.getComponents().iterator();
 				while (itr.hasNext()) {
-					StrongholdGen.Component component = itr.next();
+					Component component = itr.next();
 					if (component.getBoundingBox().intersectsWith(popBB)
 							&& !component.placeInWorld(world, rand, popBB)) {
 						itr.remove();
@@ -144,57 +143,36 @@ public class StrongholdPosFinder {
 	/**
 	 * Represents a configuration of stronghold rooms
 	 */
-	public static class Stronghold {
-		private List<StrongholdGen.Component> components = new ArrayList<>();
-		private AABB boundingBox;
+	public static class Stronghold extends Structure {
 
 		public Stronghold(Random rand, ChunkPos location) {
 			StrongholdGen.prepareStructurePieces();
 
 			StrongholdGen.StartingStairs stairs2 = new StrongholdGen.StartingStairs(0, rand, (location.getX() << 4) + 2,
 					(location.getZ() << 4) + 2);
-			components.add(stairs2);
+			getComponents().add(stairs2);
 
-			stairs2.addMoreComponents(stairs2, components, rand);
+			stairs2.addMoreComponents(stairs2, getComponents(), rand);
 
 			// Recursively add more rooms until there are none left to add
-			List<StrongholdGen.Component> pendingChildren = stairs2.pendingChildren;
+			List<StrongholdGen.StrongholdComponent> pendingChildren = stairs2.pendingChildren;
 			while (!pendingChildren.isEmpty()) {
 				int index = rand.nextInt(pendingChildren.size());
-				StrongholdGen.Component nextComponent = pendingChildren.remove(index);
-				nextComponent.addMoreComponents(stairs2, components, rand);
+				StrongholdGen.StrongholdComponent nextComponent = pendingChildren.remove(index);
+				nextComponent.addMoreComponents(stairs2, getComponents(), rand);
 			}
 
 			// Update the main outer bounding box
-			boundingBox = components.stream().map(StrongholdGen.Component::getBoundingBox)
-					.reduce(new AABB(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE,
-							Integer.MIN_VALUE, Integer.MIN_VALUE), AABB::max);
+			updateBoundingBox();
 
 			// Shift the entire structure vertically
-			final int maxHeight = 63 - 10;
-			int newTop = this.boundingBox.getYSize() + 1;
-
-			if (newTop < maxHeight) {
-				newTop += rand.nextInt(maxHeight - newTop);
-			}
-
-			int toMoveUp = newTop - boundingBox.getMaxY();
-			boundingBox = boundingBox.getOffset(0, toMoveUp, 0);
-
-			components.forEach(c -> c.setBoundingBox(c.getBoundingBox().getOffset(0, toMoveUp, 0)));
+			adjustVertical(rand);
 		}
 
 		public StrongholdGen.PortalRoom getPortalRoom() {
-			return ((StrongholdGen.StartingStairs) components.get(0)).portalRoom;
+			return ((StrongholdGen.StartingStairs) getComponents().get(0)).portalRoom;
 		}
 
-		public List<StrongholdGen.Component> getComponents() {
-			return components;
-		}
-
-		public AABB getBoundingBox() {
-			return boundingBox;
-		}
 	}
 
 }

@@ -1,4 +1,4 @@
-package seedfinder.stronghold;
+package seedfinder.structure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,7 @@ import seedfinder.BlockPos;
 import seedfinder.Blocks;
 import seedfinder.EnumFacing;
 import seedfinder.Storage3D;
+import seedfinder.structure.Component.BlockSelector;
 
 public class StrongholdGen {
 
@@ -73,14 +74,15 @@ public class StrongholdGen {
 		return componentTypePool.stream().anyMatch(it -> it.limit > 0 && it.amtCreated < it.limit);
 	}
 
-	private static Component getNextComponent(StartingStairs startComponent, List<Component> components, Random rand,
-			int x, int y, int z, EnumFacing facing, int distanceFromStart) {
+	private static StrongholdComponent getNextComponent(StartingStairs startComponent, List<Component> components,
+			Random rand, int x, int y, int z, EnumFacing facing, int distanceFromStart) {
 		if (!canAddMoreComponents()) {
 			return null;
 		}
 
 		if (nextComponentCreator != null) {
-			Component component = nextComponentCreator.create(components, rand, x, y, z, facing, distanceFromStart);
+			StrongholdComponent component = nextComponentCreator.create(components, rand, x, y, z, facing,
+					distanceFromStart);
 			nextComponentCreator = null;
 
 			if (component != null) {
@@ -101,7 +103,8 @@ public class StrongholdGen {
 						break;
 					}
 
-					Component component = entry.creator.create(components, rand, x, y, z, facing, distanceFromStart);
+					StrongholdComponent component = entry.creator.create(components, rand, x, y, z, facing,
+							distanceFromStart);
 
 					if (component != null) {
 						entry.amtCreated++;
@@ -126,13 +129,13 @@ public class StrongholdGen {
 		}
 	}
 
-	private static Component generateAndAddComponent(StartingStairs startComponent, List<Component> components,
-			Random rand, int x, int y, int z, EnumFacing facing, int distanceFromStart) {
+	private static StrongholdComponent generateAndAddComponent(StartingStairs startComponent,
+			List<Component> components, Random rand, int x, int y, int z, EnumFacing facing, int distanceFromStart) {
 		if (distanceFromStart > 50) {
 			return null;
 		} else if (Math.abs(x - startComponent.getBoundingBox().getMinX()) <= 112
 				&& Math.abs(z - startComponent.getBoundingBox().getMinZ()) <= 112) {
-			Component component = getNextComponent(startComponent, components, rand, x, y, z, facing,
+			StrongholdComponent component = getNextComponent(startComponent, components, rand, x, y, z, facing,
 					distanceFromStart + 1);
 
 			if (component != null) {
@@ -146,7 +149,7 @@ public class StrongholdGen {
 		}
 	}
 
-	public static class ChestCorridor extends Component {
+	public static class ChestCorridor extends StrongholdComponent {
 		private boolean hasMadeChest;
 
 		public ChestCorridor(int distanceFromStart, Random rand, AABB boundingBox, EnumFacing facing) {
@@ -173,7 +176,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random randomIn, AABB structureBoundingBoxIn) {
-			if (this.isLiquidInStructureBoundingBox(world, structureBoundingBoxIn)) {
+			if (this.isLiquidInWalls(world, structureBoundingBoxIn)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, structureBoundingBoxIn, 0, 0, 0, 4, 4, 6, true, randomIn,
@@ -182,13 +185,13 @@ public class StrongholdGen {
 				this.placeDoor(world, randomIn, structureBoundingBoxIn, DoorType.OPENING, 1, 1, 6);
 				this.fillWithBlocks(world, structureBoundingBoxIn, 3, 1, 2, 3, 1, 4, Blocks.STONEBRICK,
 						Blocks.STONEBRICK, false);
-				this.setBlockState(world, Blocks.STONE_SLAB, 3, 1, 1, structureBoundingBoxIn);
-				this.setBlockState(world, Blocks.STONE_SLAB, 3, 1, 5, structureBoundingBoxIn);
-				this.setBlockState(world, Blocks.STONE_SLAB, 3, 2, 2, structureBoundingBoxIn);
-				this.setBlockState(world, Blocks.STONE_SLAB, 3, 2, 4, structureBoundingBoxIn);
+				this.setBlock(world, Blocks.STONE_SLAB, 3, 1, 1, structureBoundingBoxIn);
+				this.setBlock(world, Blocks.STONE_SLAB, 3, 1, 5, structureBoundingBoxIn);
+				this.setBlock(world, Blocks.STONE_SLAB, 3, 2, 2, structureBoundingBoxIn);
+				this.setBlock(world, Blocks.STONE_SLAB, 3, 2, 4, structureBoundingBoxIn);
 
 				for (int z = 2; z <= 4; z++) {
-					this.setBlockState(world, Blocks.STONE_SLAB, 2, 1, z, structureBoundingBoxIn);
+					this.setBlock(world, Blocks.STONE_SLAB, 2, 1, z, structureBoundingBoxIn);
 				}
 
 				if (!this.hasMadeChest && structureBoundingBoxIn.contains(
@@ -206,7 +209,7 @@ public class StrongholdGen {
 		}
 	}
 
-	private static class Corridor extends Component {
+	private static class Corridor extends StrongholdComponent {
 		private int length;
 
 		public Corridor(int distanceFromStart, Random rand, AABB boundingBox, EnumFacing facing) {
@@ -240,29 +243,29 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				for (int z = 0; z < this.length; ++z) {
-					this.setBlockState(world, Blocks.STONEBRICK, 0, 0, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 1, 0, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 2, 0, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 3, 0, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 4, 0, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 0, 0, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 1, 0, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 2, 0, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 3, 0, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 4, 0, z, bounds);
 
 					for (int j = 1; j <= 3; ++j) {
-						this.setBlockState(world, Blocks.STONEBRICK, 0, j, z, bounds);
-						this.setBlockState(world, Blocks.AIR, 1, j, z, bounds);
-						this.setBlockState(world, Blocks.AIR, 2, j, z, bounds);
-						this.setBlockState(world, Blocks.AIR, 3, j, z, bounds);
-						this.setBlockState(world, Blocks.STONEBRICK, 4, j, z, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 0, j, z, bounds);
+						this.setBlock(world, Blocks.AIR, 1, j, z, bounds);
+						this.setBlock(world, Blocks.AIR, 2, j, z, bounds);
+						this.setBlock(world, Blocks.AIR, 3, j, z, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 4, j, z, bounds);
 					}
 
-					this.setBlockState(world, Blocks.STONEBRICK, 0, 4, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 1, 4, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 2, 4, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 3, 4, z, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 4, 4, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 0, 4, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 1, 4, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 2, 4, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 3, 4, z, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 4, 4, z, bounds);
 				}
 
 				return true;
@@ -270,7 +273,7 @@ public class StrongholdGen {
 		}
 	}
 
-	private static class Crossing extends Component {
+	private static class Crossing extends StrongholdComponent {
 		private boolean leftLow;
 		private boolean leftHigh;
 		private boolean rightLow;
@@ -329,7 +332,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 9, 8, 10, true, rand, STONE_GEN);
@@ -366,13 +369,13 @@ public class StrongholdGen {
 				this.fillWithBlocks(world, bounds, 8, 5, 7, 8, 5, 9, Blocks.STONE_SLAB, Blocks.STONE_SLAB, false);
 				this.fillWithBlocks(world, bounds, 5, 5, 7, 7, 5, 9, Blocks.DOUBLE_STONE_SLAB, Blocks.DOUBLE_STONE_SLAB,
 						false);
-				this.setBlockState(world, Blocks.TORCH, 6, 5, 6, bounds);
+				this.setBlock(world, Blocks.TORCH, 6, 5, 6, bounds);
 				return true;
 			}
 		}
 	}
 
-	private static class LeftTurn extends Component {
+	private static class LeftTurn extends StrongholdComponent {
 		public LeftTurn() {
 		}
 
@@ -406,7 +409,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D worldIn, Random randomIn, AABB structureBoundingBoxIn) {
-			if (this.isLiquidInStructureBoundingBox(worldIn, structureBoundingBoxIn)) {
+			if (this.isLiquidInWalls(worldIn, structureBoundingBoxIn)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(worldIn, structureBoundingBoxIn, 0, 0, 0, 4, 4, 4, true, randomIn,
@@ -427,7 +430,7 @@ public class StrongholdGen {
 		}
 	}
 
-	public static class Library extends Component {
+	public static class Library extends StrongholdComponent {
 		private boolean isLargeRoom;
 
 		public Library(int distanceFromStart, Random rand, AABB boundingBox, EnumFacing facing) {
@@ -455,7 +458,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				int height = 11;
@@ -472,8 +475,8 @@ public class StrongholdGen {
 					if ((z - 1) % 4 == 0) {
 						this.fillWithBlocks(world, bounds, 1, 1, z, 1, 4, z, Blocks.PLANKS, Blocks.PLANKS, false);
 						this.fillWithBlocks(world, bounds, 12, 1, z, 12, 4, z, Blocks.PLANKS, Blocks.PLANKS, false);
-						this.setBlockState(world, Blocks.TORCH, 2, 3, z, bounds);
-						this.setBlockState(world, Blocks.TORCH, 11, 3, z, bounds);
+						this.setBlock(world, Blocks.TORCH, 2, 3, z, bounds);
+						this.setBlock(world, Blocks.TORCH, 11, 3, z, bounds);
 
 						if (this.isLargeRoom) {
 							this.fillWithBlocks(world, bounds, 1, 6, z, 1, 9, z, Blocks.PLANKS, Blocks.PLANKS, false);
@@ -504,49 +507,49 @@ public class StrongholdGen {
 					this.fillWithBlocks(world, bounds, 10, 5, 1, 12, 5, 13, Blocks.PLANKS, Blocks.PLANKS, false);
 					this.fillWithBlocks(world, bounds, 4, 5, 1, 9, 5, 2, Blocks.PLANKS, Blocks.PLANKS, false);
 					this.fillWithBlocks(world, bounds, 4, 5, 12, 9, 5, 13, Blocks.PLANKS, Blocks.PLANKS, false);
-					this.setBlockState(world, Blocks.PLANKS, 9, 5, 11, bounds);
-					this.setBlockState(world, Blocks.PLANKS, 8, 5, 11, bounds);
-					this.setBlockState(world, Blocks.PLANKS, 9, 5, 10, bounds);
+					this.setBlock(world, Blocks.PLANKS, 9, 5, 11, bounds);
+					this.setBlock(world, Blocks.PLANKS, 8, 5, 11, bounds);
+					this.setBlock(world, Blocks.PLANKS, 9, 5, 10, bounds);
 					this.fillWithBlocks(world, bounds, 3, 6, 2, 3, 6, 12, Blocks.OAK_FENCE, Blocks.OAK_FENCE, false);
 					this.fillWithBlocks(world, bounds, 10, 6, 2, 10, 6, 10, Blocks.OAK_FENCE, Blocks.OAK_FENCE, false);
 					this.fillWithBlocks(world, bounds, 4, 6, 2, 9, 6, 2, Blocks.OAK_FENCE, Blocks.OAK_FENCE, false);
 					this.fillWithBlocks(world, bounds, 4, 6, 12, 8, 6, 12, Blocks.OAK_FENCE, Blocks.OAK_FENCE, false);
-					this.setBlockState(world, Blocks.OAK_FENCE, 9, 6, 11, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 8, 6, 11, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 9, 6, 10, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 9, 6, 11, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 8, 6, 11, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 9, 6, 10, bounds);
 					int iblockstate1 = Blocks.LADDER;
-					this.setBlockState(world, iblockstate1, 10, 1, 13, bounds);
-					this.setBlockState(world, iblockstate1, 10, 2, 13, bounds);
-					this.setBlockState(world, iblockstate1, 10, 3, 13, bounds);
-					this.setBlockState(world, iblockstate1, 10, 4, 13, bounds);
-					this.setBlockState(world, iblockstate1, 10, 5, 13, bounds);
-					this.setBlockState(world, iblockstate1, 10, 6, 13, bounds);
-					this.setBlockState(world, iblockstate1, 10, 7, 13, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 6, 9, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 7, 9, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 6, 8, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 7, 8, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 6, 7, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 7, 7, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 5, 7, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 8, 7, 7, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 6, 7, 6, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 6, 7, 8, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 7, 7, 6, bounds);
-					this.setBlockState(world, Blocks.OAK_FENCE, 7, 7, 8, bounds);
+					this.setBlock(world, iblockstate1, 10, 1, 13, bounds);
+					this.setBlock(world, iblockstate1, 10, 2, 13, bounds);
+					this.setBlock(world, iblockstate1, 10, 3, 13, bounds);
+					this.setBlock(world, iblockstate1, 10, 4, 13, bounds);
+					this.setBlock(world, iblockstate1, 10, 5, 13, bounds);
+					this.setBlock(world, iblockstate1, 10, 6, 13, bounds);
+					this.setBlock(world, iblockstate1, 10, 7, 13, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 6, 9, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 7, 9, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 6, 8, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 7, 8, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 6, 7, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 7, 7, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 5, 7, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 8, 7, 7, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 6, 7, 6, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 6, 7, 8, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 7, 7, 6, bounds);
+					this.setBlock(world, Blocks.OAK_FENCE, 7, 7, 8, bounds);
 					int iblockstate = Blocks.TORCH;
-					this.setBlockState(world, iblockstate, 5, 8, 7, bounds);
-					this.setBlockState(world, iblockstate, 8, 8, 7, bounds);
-					this.setBlockState(world, iblockstate, 6, 8, 6, bounds);
-					this.setBlockState(world, iblockstate, 6, 8, 8, bounds);
-					this.setBlockState(world, iblockstate, 7, 8, 6, bounds);
-					this.setBlockState(world, iblockstate, 7, 8, 8, bounds);
+					this.setBlock(world, iblockstate, 5, 8, 7, bounds);
+					this.setBlock(world, iblockstate, 8, 8, 7, bounds);
+					this.setBlock(world, iblockstate, 6, 8, 6, bounds);
+					this.setBlock(world, iblockstate, 6, 8, 8, bounds);
+					this.setBlock(world, iblockstate, 7, 8, 6, bounds);
+					this.setBlock(world, iblockstate, 7, 8, 8, bounds);
 				}
 
 				this.generateChest(world, bounds, rand, 3, 3, 5);
 
 				if (this.isLargeRoom) {
-					this.setBlockState(world, Blocks.AIR, 12, 9, 1, bounds);
+					this.setBlock(world, Blocks.AIR, 12, 9, 1, bounds);
 					this.generateChest(world, bounds, rand, 12, 8, 1);
 				}
 
@@ -567,7 +570,7 @@ public class StrongholdGen {
 		}
 	}
 
-	public static class PortalRoom extends Component {
+	public static class PortalRoom extends StrongholdComponent {
 		private boolean hasSpawner;
 
 		public PortalRoom(int distanceFromStart, Random rand, AABB boundingBox, EnumFacing facing) {
@@ -628,9 +631,9 @@ public class StrongholdGen {
 			this.fillWithRandomizedBlocks(world, bounds, 4, 3, 7, 6, 3, 7, false, rand, STONE_GEN);
 
 			for (int x = 4; x <= 6; x++) {
-				this.setBlockState(world, Blocks.STONE_BRICK_STAIRS, x, 1, 4, bounds);
-				this.setBlockState(world, Blocks.STONE_BRICK_STAIRS, x, 2, 5, bounds);
-				this.setBlockState(world, Blocks.STONE_BRICK_STAIRS, x, 3, 6, bounds);
+				this.setBlock(world, Blocks.STONE_BRICK_STAIRS, x, 1, 4, bounds);
+				this.setBlock(world, Blocks.STONE_BRICK_STAIRS, x, 2, 5, bounds);
+				this.setBlock(world, Blocks.STONE_BRICK_STAIRS, x, 3, 6, bounds);
 			}
 
 			boolean completePortal = true;
@@ -655,20 +658,20 @@ public class StrongholdGen {
 			this.placePortalFrame(world, eyes[11], 7, 3, 11, bounds);
 
 			if (completePortal) {
-				this.setBlockState(world, Blocks.END_PORTAL, 4, 3, 9, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 5, 3, 9, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 6, 3, 9, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 4, 3, 10, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 5, 3, 10, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 6, 3, 10, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 4, 3, 11, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 5, 3, 11, bounds);
-				this.setBlockState(world, Blocks.END_PORTAL, 6, 3, 11, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 4, 3, 9, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 5, 3, 9, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 6, 3, 9, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 4, 3, 10, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 5, 3, 10, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 6, 3, 10, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 4, 3, 11, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 5, 3, 11, bounds);
+				this.setBlock(world, Blocks.END_PORTAL, 6, 3, 11, bounds);
 			}
 
 			if (!this.hasSpawner) {
 				this.hasSpawner = true;
-				setBlockState(world, Blocks.MOB_SPAWNER, 5, 3, 6, bounds);
+				setBlock(world, Blocks.MOB_SPAWNER, 5, 3, 6, bounds);
 			}
 
 			return true;
@@ -676,7 +679,7 @@ public class StrongholdGen {
 
 		private void placePortalFrame(Storage3D world, boolean eye, int x, int y, int z, AABB popBB) {
 			if (popBB.contains(getXWithOffset(x, z), getYWithOffset(y), getZWithOffset(x, z))) {
-				setBlockState(world, Blocks.END_PORTAL_FRAME, x, y, z, popBB);
+				setBlock(world, Blocks.END_PORTAL_FRAME, x, y, z, popBB);
 				if (eye) {
 					eyes++;
 				}
@@ -684,7 +687,7 @@ public class StrongholdGen {
 		}
 	}
 
-	private static class Prison extends Component {
+	private static class Prison extends StrongholdComponent {
 
 		public Prison(int distanceFromStart, Random rand, AABB boundingBox, EnumFacing facing) {
 			super(distanceFromStart);
@@ -710,7 +713,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 8, 4, 10, true, rand, STONE_GEN);
@@ -722,12 +725,12 @@ public class StrongholdGen {
 				this.fillWithRandomizedBlocks(world, bounds, 4, 1, 9, 4, 3, 9, false, rand, STONE_GEN);
 				this.fillWithBlocks(world, bounds, 4, 1, 4, 4, 3, 6, Blocks.IRON_BARS, Blocks.IRON_BARS, false);
 				this.fillWithBlocks(world, bounds, 5, 1, 5, 7, 3, 5, Blocks.IRON_BARS, Blocks.IRON_BARS, false);
-				this.setBlockState(world, Blocks.IRON_BARS, 4, 3, 2, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, 4, 3, 8, bounds);
-				this.setBlockState(world, Blocks.IRON_DOOR, 4, 1, 2, bounds);
-				this.setBlockState(world, Blocks.IRON_DOOR, 4, 2, 2, bounds);
-				this.setBlockState(world, Blocks.IRON_DOOR, 4, 1, 8, bounds);
-				this.setBlockState(world, Blocks.IRON_DOOR, 4, 2, 8, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, 4, 3, 2, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, 4, 3, 8, bounds);
+				this.setBlock(world, Blocks.IRON_DOOR, 4, 1, 2, bounds);
+				this.setBlock(world, Blocks.IRON_DOOR, 4, 2, 2, bounds);
+				this.setBlock(world, Blocks.IRON_DOOR, 4, 1, 8, bounds);
+				this.setBlock(world, Blocks.IRON_DOOR, 4, 2, 8, bounds);
 				return true;
 			}
 		}
@@ -747,7 +750,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 4, 4, 4, true, rand, STONE_GEN);
@@ -765,7 +768,7 @@ public class StrongholdGen {
 		}
 	}
 
-	public static class RoomCrossing extends Component {
+	public static class RoomCrossing extends StrongholdComponent {
 		private int roomType;
 
 		public RoomCrossing(int distanceFromStart, Random rand, AABB bounds, EnumFacing facing) {
@@ -795,7 +798,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 10, 6, 10, true, rand, STONE_GEN);
@@ -806,83 +809,83 @@ public class StrongholdGen {
 
 				switch (this.roomType) {
 				case 0:
-					this.setBlockState(world, Blocks.STONEBRICK, 5, 1, 5, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 5, 2, 5, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 5, 3, 5, bounds);
-					this.setBlockState(world, Blocks.TORCH, 4, 3, 5, bounds);
-					this.setBlockState(world, Blocks.TORCH, 6, 3, 5, bounds);
-					this.setBlockState(world, Blocks.TORCH, 5, 3, 4, bounds);
-					this.setBlockState(world, Blocks.TORCH, 5, 3, 6, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 4, 1, 4, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 4, 1, 5, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 4, 1, 6, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 6, 1, 4, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 6, 1, 5, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 6, 1, 6, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 5, 1, 4, bounds);
-					this.setBlockState(world, Blocks.STONE_SLAB, 5, 1, 6, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 5, 1, 5, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 5, 2, 5, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 5, 3, 5, bounds);
+					this.setBlock(world, Blocks.TORCH, 4, 3, 5, bounds);
+					this.setBlock(world, Blocks.TORCH, 6, 3, 5, bounds);
+					this.setBlock(world, Blocks.TORCH, 5, 3, 4, bounds);
+					this.setBlock(world, Blocks.TORCH, 5, 3, 6, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 4, 1, 4, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 4, 1, 5, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 4, 1, 6, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 6, 1, 4, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 6, 1, 5, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 6, 1, 6, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 5, 1, 4, bounds);
+					this.setBlock(world, Blocks.STONE_SLAB, 5, 1, 6, bounds);
 					break;
 
 				case 1:
 					for (int i = 0; i < 5; i++) {
-						this.setBlockState(world, Blocks.STONEBRICK, 3, 1, 3 + i, bounds);
-						this.setBlockState(world, Blocks.STONEBRICK, 7, 1, 3 + i, bounds);
-						this.setBlockState(world, Blocks.STONEBRICK, 3 + i, 1, 3, bounds);
-						this.setBlockState(world, Blocks.STONEBRICK, 3 + i, 1, 7, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 3, 1, 3 + i, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 7, 1, 3 + i, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 3 + i, 1, 3, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 3 + i, 1, 7, bounds);
 					}
 
-					this.setBlockState(world, Blocks.STONEBRICK, 5, 1, 5, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 5, 2, 5, bounds);
-					this.setBlockState(world, Blocks.STONEBRICK, 5, 3, 5, bounds);
-					this.setBlockState(world, Blocks.FLOWING_WATER, 5, 4, 5, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 5, 1, 5, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 5, 2, 5, bounds);
+					this.setBlock(world, Blocks.STONEBRICK, 5, 3, 5, bounds);
+					this.setBlock(world, Blocks.FLOWING_WATER, 5, 4, 5, bounds);
 					break;
 
 				case 2:
 					for (int z = 1; z <= 9; z++) {
-						this.setBlockState(world, Blocks.COBBLESTONE, 1, 3, z, bounds);
-						this.setBlockState(world, Blocks.COBBLESTONE, 9, 3, z, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, 1, 3, z, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, 9, 3, z, bounds);
 					}
 
 					for (int x = 1; x <= 9; x++) {
-						this.setBlockState(world, Blocks.COBBLESTONE, x, 3, 1, bounds);
-						this.setBlockState(world, Blocks.COBBLESTONE, x, 3, 9, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, x, 3, 1, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, x, 3, 9, bounds);
 					}
 
-					this.setBlockState(world, Blocks.COBBLESTONE, 5, 1, 4, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 5, 1, 6, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 5, 3, 4, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 5, 3, 6, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 4, 1, 5, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 6, 1, 5, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 4, 3, 5, bounds);
-					this.setBlockState(world, Blocks.COBBLESTONE, 6, 3, 5, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 5, 1, 4, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 5, 1, 6, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 5, 3, 4, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 5, 3, 6, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 4, 1, 5, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 6, 1, 5, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 4, 3, 5, bounds);
+					this.setBlock(world, Blocks.COBBLESTONE, 6, 3, 5, bounds);
 
 					for (int y = 1; y <= 3; y++) {
-						this.setBlockState(world, Blocks.COBBLESTONE, 4, y, 4, bounds);
-						this.setBlockState(world, Blocks.COBBLESTONE, 6, y, 4, bounds);
-						this.setBlockState(world, Blocks.COBBLESTONE, 4, y, 6, bounds);
-						this.setBlockState(world, Blocks.COBBLESTONE, 6, y, 6, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, 4, y, 4, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, 6, y, 4, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, 4, y, 6, bounds);
+						this.setBlock(world, Blocks.COBBLESTONE, 6, y, 6, bounds);
 					}
 
-					this.setBlockState(world, Blocks.TORCH, 5, 3, 5, bounds);
+					this.setBlock(world, Blocks.TORCH, 5, 3, 5, bounds);
 
 					for (int z = 2; z <= 8; z++) {
-						this.setBlockState(world, Blocks.PLANKS, 2, 3, z, bounds);
-						this.setBlockState(world, Blocks.PLANKS, 3, 3, z, bounds);
+						this.setBlock(world, Blocks.PLANKS, 2, 3, z, bounds);
+						this.setBlock(world, Blocks.PLANKS, 3, 3, z, bounds);
 
 						if (z <= 3 || z >= 7) {
-							this.setBlockState(world, Blocks.PLANKS, 4, 3, z, bounds);
-							this.setBlockState(world, Blocks.PLANKS, 5, 3, z, bounds);
-							this.setBlockState(world, Blocks.PLANKS, 6, 3, z, bounds);
+							this.setBlock(world, Blocks.PLANKS, 4, 3, z, bounds);
+							this.setBlock(world, Blocks.PLANKS, 5, 3, z, bounds);
+							this.setBlock(world, Blocks.PLANKS, 6, 3, z, bounds);
 						}
 
-						this.setBlockState(world, Blocks.PLANKS, 7, 3, z, bounds);
-						this.setBlockState(world, Blocks.PLANKS, 8, 3, z, bounds);
+						this.setBlock(world, Blocks.PLANKS, 7, 3, z, bounds);
+						this.setBlock(world, Blocks.PLANKS, 8, 3, z, bounds);
 					}
 
-					this.setBlockState(world, Blocks.LADDER, 9, 1, 3, bounds);
-					this.setBlockState(world, Blocks.LADDER, 9, 2, 3, bounds);
-					this.setBlockState(world, Blocks.LADDER, 9, 3, 3, bounds);
+					this.setBlock(world, Blocks.LADDER, 9, 1, 3, bounds);
+					this.setBlock(world, Blocks.LADDER, 9, 2, 3, bounds);
+					this.setBlock(world, Blocks.LADDER, 9, 3, 3, bounds);
 					this.generateChest(world, bounds, rand, 3, 4, 8);
 				}
 
@@ -899,7 +902,7 @@ public class StrongholdGen {
 		}
 	}
 
-	private static class Stairs extends Component {
+	private static class Stairs extends StrongholdComponent {
 		private boolean source;
 
 		public Stairs(int distanceFromStart, Random rand, int x, int z) {
@@ -944,29 +947,29 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 4, 10, 4, true, rand, STONE_GEN);
 				this.placeDoor(world, rand, bounds, this.entryDoorType, 1, 7, 0);
 				this.placeDoor(world, rand, bounds, DoorType.OPENING, 1, 1, 4);
-				this.setBlockState(world, Blocks.STONEBRICK, 2, 6, 1, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 1, 5, 1, bounds);
-				this.setBlockState(world, Blocks.STONE_SLAB, 1, 6, 1, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 1, 5, 2, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 1, 4, 3, bounds);
-				this.setBlockState(world, Blocks.STONE_SLAB, 1, 5, 3, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 2, 4, 3, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 3, 3, 3, bounds);
-				this.setBlockState(world, Blocks.STONE_SLAB, 3, 4, 3, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 3, 3, 2, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 3, 2, 1, bounds);
-				this.setBlockState(world, Blocks.STONE_SLAB, 3, 3, 1, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 2, 2, 1, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 1, 1, 1, bounds);
-				this.setBlockState(world, Blocks.STONE_SLAB, 1, 2, 1, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, 1, 1, 2, bounds);
-				this.setBlockState(world, Blocks.STONE_SLAB, 1, 1, 3, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 2, 6, 1, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 1, 5, 1, bounds);
+				this.setBlock(world, Blocks.STONE_SLAB, 1, 6, 1, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 1, 5, 2, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 1, 4, 3, bounds);
+				this.setBlock(world, Blocks.STONE_SLAB, 1, 5, 3, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 2, 4, 3, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 3, 3, 3, bounds);
+				this.setBlock(world, Blocks.STONE_SLAB, 3, 4, 3, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 3, 3, 2, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 3, 2, 1, bounds);
+				this.setBlock(world, Blocks.STONE_SLAB, 3, 3, 1, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 2, 2, 1, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 1, 1, 1, bounds);
+				this.setBlock(world, Blocks.STONE_SLAB, 1, 2, 1, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, 1, 1, 2, bounds);
+				this.setBlock(world, Blocks.STONE_SLAB, 1, 1, 3, bounds);
 				return true;
 			}
 		}
@@ -975,14 +978,14 @@ public class StrongholdGen {
 	public static class StartingStairs extends Stairs {
 		public PoolEntry lastComponentTypeCreated;
 		public PortalRoom portalRoom;
-		public List<Component> pendingChildren = new ArrayList<>();
+		public List<StrongholdComponent> pendingChildren = new ArrayList<>();
 
 		public StartingStairs(int distanceFromStart, Random rand, int x, int z) {
 			super(0, rand, x, z);
 		}
 	}
 
-	private static class StairsStraight extends Component {
+	private static class StairsStraight extends StrongholdComponent {
 
 		public StairsStraight(int distanceFromStart, Random rand, AABB bounds, EnumFacing facing) {
 			super(distanceFromStart);
@@ -1008,7 +1011,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 4, 10, 7, true, rand, STONE_GEN);
@@ -1016,14 +1019,14 @@ public class StrongholdGen {
 				this.placeDoor(world, rand, bounds, DoorType.OPENING, 1, 1, 7);
 
 				for (int i = 0; i < 6; ++i) {
-					this.setBlockState(world, Blocks.STONE_STAIRS, 1, 6 - i, 1 + i, bounds);
-					this.setBlockState(world, Blocks.STONE_STAIRS, 2, 6 - i, 1 + i, bounds);
-					this.setBlockState(world, Blocks.STONE_STAIRS, 3, 6 - i, 1 + i, bounds);
+					this.setBlock(world, Blocks.STONE_STAIRS, 1, 6 - i, 1 + i, bounds);
+					this.setBlock(world, Blocks.STONE_STAIRS, 2, 6 - i, 1 + i, bounds);
+					this.setBlock(world, Blocks.STONE_STAIRS, 3, 6 - i, 1 + i, bounds);
 
 					if (i < 5) {
-						this.setBlockState(world, Blocks.STONEBRICK, 1, 5 - i, 1 + i, bounds);
-						this.setBlockState(world, Blocks.STONEBRICK, 2, 5 - i, 1 + i, bounds);
-						this.setBlockState(world, Blocks.STONEBRICK, 3, 5 - i, 1 + i, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 1, 5 - i, 1 + i, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 2, 5 - i, 1 + i, bounds);
+						this.setBlock(world, Blocks.STONEBRICK, 3, 5 - i, 1 + i, bounds);
 					}
 				}
 
@@ -1032,7 +1035,7 @@ public class StrongholdGen {
 		}
 	}
 
-	private static class Straight extends Component {
+	private static class Straight extends StrongholdComponent {
 		private boolean expandsLeft;
 		private boolean expandsRight;
 
@@ -1070,7 +1073,7 @@ public class StrongholdGen {
 
 		@Override
 		public boolean placeInWorld(Storage3D world, Random rand, AABB bounds) {
-			if (this.isLiquidInStructureBoundingBox(world, bounds)) {
+			if (this.isLiquidInWalls(world, bounds)) {
 				return false;
 			} else {
 				this.fillWithRandomizedBlocks(world, bounds, 0, 0, 0, 4, 4, 6, true, rand, STONE_GEN);
@@ -1094,226 +1097,14 @@ public class StrongholdGen {
 		}
 	}
 
-	public abstract static class Component {
-		private AABB boundingBox;
-		private EnumFacing facing;
-		private int distanceFromStart;
+	public abstract static class StrongholdComponent extends Component {
 		protected DoorType entryDoorType = DoorType.OPENING;
 
-		public Component() {
+		public StrongholdComponent() {
 		}
 
-		protected Component(int distanceFromStart) {
-			this.distanceFromStart = distanceFromStart;
-		}
-
-		public void setBoundingBox(AABB boundingBox) {
-			this.boundingBox = boundingBox;
-		}
-
-		public AABB getBoundingBox() {
-			return boundingBox;
-		}
-
-		public void setFacing(EnumFacing coordBaseMode) {
-			this.facing = coordBaseMode;
-		}
-
-		public EnumFacing getFacing() {
-			return facing;
-		}
-
-		public int getDistanceFromStart() {
-			return distanceFromStart;
-		}
-
-		public void addMoreComponents(Component startComponent, List<Component> components, Random rand) {
-		}
-
-		public abstract boolean placeInWorld(Storage3D world, Random rand, AABB bounds);
-
-		public static Component findIntersecting(List<Component> components, AABB bounds) {
-			return components.stream()
-					.filter(it -> it.getBoundingBox() != null && it.getBoundingBox().intersectsWith(bounds)).findFirst()
-					.orElse(null);
-		}
-
-		public boolean isLiquidInStructureBoundingBox(Storage3D world, AABB bounds) {
-			int minX = Math.max(this.boundingBox.getMinX() - 1, bounds.getMinX());
-			int minY = Math.max(this.boundingBox.getMinY() - 1, bounds.getMinY());
-			int minZ = Math.max(this.boundingBox.getMinZ() - 1, bounds.getMinZ());
-			int maxX = Math.min(this.boundingBox.getMaxX() + 1, bounds.getMaxX());
-			int maxY = Math.min(this.boundingBox.getMaxY() + 1, bounds.getMaxY());
-			int maxZ = Math.min(this.boundingBox.getMaxZ() + 1, bounds.getMaxZ());
-
-			for (int x = minX; x <= maxX; x++) {
-				for (int z = minZ; z <= maxZ; z++) {
-					if (Blocks.isLiquid(world.get(x, minY, z))) {
-						return true;
-					}
-					if (Blocks.isLiquid(world.get(x, minY, z))) {
-						return true;
-					}
-				}
-			}
-
-			for (int x = minX; x <= maxX; x++) {
-				for (int y = minY; y <= maxY; y++) {
-					if (Blocks.isLiquid(world.get(x, y, minZ))) {
-						return true;
-					}
-					if (Blocks.isLiquid(world.get(x, y, maxZ))) {
-						return true;
-					}
-				}
-			}
-
-			for (int z = minZ; z <= maxZ; z++) {
-				for (int y = minY; y <= maxY; y++) {
-					if (Blocks.isLiquid(world.get(minX, y, z))) {
-						return true;
-					}
-					if (Blocks.isLiquid(world.get(maxX, y, z))) {
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
-		protected int getXWithOffset(int x, int z) {
-			EnumFacing enumfacing = this.getFacing();
-
-			if (enumfacing == null) {
-				return x;
-			} else {
-				switch (enumfacing) {
-				case NORTH:
-				case SOUTH:
-					return this.boundingBox.getMinX() + x;
-
-				case WEST:
-					return this.boundingBox.getMaxX() - z;
-
-				case EAST:
-					return this.boundingBox.getMinX() + z;
-
-				default:
-					return x;
-				}
-			}
-		}
-
-		protected int getYWithOffset(int y) {
-			return this.getFacing() == null ? y : y + this.boundingBox.getMinY();
-		}
-
-		protected int getZWithOffset(int x, int z) {
-			EnumFacing enumfacing = this.getFacing();
-
-			if (enumfacing == null) {
-				return z;
-			} else {
-				switch (enumfacing) {
-				case NORTH:
-					return this.boundingBox.getMaxZ() - z;
-
-				case SOUTH:
-					return this.boundingBox.getMinZ() + z;
-
-				case WEST:
-				case EAST:
-					return this.boundingBox.getMinZ() + x;
-
-				default:
-					return z;
-				}
-			}
-		}
-
-		protected int getBlockStateFromPos(Storage3D world, int x, int y, int z, AABB boundingBox) {
-			int xOff = getXWithOffset(x, z);
-			int yOff = getYWithOffset(y);
-			int zOff = getZWithOffset(x, z);
-			if (!boundingBox.contains(xOff, yOff, zOff)) {
-				return Blocks.AIR;
-			} else {
-				return world.get(xOff, yOff, zOff);
-			}
-		}
-
-		protected void setBlockState(Storage3D world, int block, int x, int y, int z, AABB bounds) {
-			int offX = getXWithOffset(x, z);
-			int offY = getYWithOffset(y);
-			int offZ = getZWithOffset(x, z);
-			if (bounds.contains(offX, offY, offZ)) {
-				world.set(offX, offY, offZ, block);
-			}
-		}
-
-		protected void fillWithBlocks(Storage3D world, AABB bounds, int xMin, int yMin, int zMin, int xMax, int yMax,
-				int zMax, int boundaryBlock, int insideBlock, boolean existingOnly) {
-			for (int y = yMin; y <= yMax; y++) {
-				for (int x = xMin; x <= xMax; x++) {
-					for (int z = zMin; z <= zMax; z++) {
-						if (!existingOnly || !Blocks.isAir(this.getBlockStateFromPos(world, x, y, z, bounds))) {
-							if (y != yMin && y != yMax && x != xMin && x != xMax && z != zMin && z != zMax) {
-								this.setBlockState(world, insideBlock, x, y, z, bounds);
-							} else {
-								this.setBlockState(world, boundaryBlock, x, y, z, bounds);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		protected void fillWithRandomizedBlocks(Storage3D world, AABB bounds, int minX, int minY, int minZ, int maxX,
-				int maxY, int maxZ, boolean preserveAir, Random rand, BlockSelector blockSelector) {
-			for (int y = minY; y <= maxY; y++) {
-				for (int x = minX; x <= maxX; x++) {
-					for (int z = minZ; z <= maxZ; z++) {
-						if (!preserveAir || !Blocks.isAir(this.getBlockStateFromPos(world, x, y, z, bounds))) {
-							blockSelector.selectBlocks(rand, x, y, z,
-									y == minY || y == maxY || x == minX || x == maxX || z == minZ || z == maxZ);
-							this.setBlockState(world, blockSelector.getBlockState(), x, y, z, bounds);
-						}
-					}
-				}
-			}
-		}
-
-		protected boolean generateChest(Storage3D world, AABB bounds, Random rand, int x, int y, int z) {
-			int xOff = getXWithOffset(x, z);
-			int yOff = getYWithOffset(y);
-			int zOff = getZWithOffset(x, z);
-			if (bounds.contains(xOff, yOff, zOff)) {
-				world.set(xOff, yOff, zOff, Blocks.CHEST);
-				rand.nextLong(); // for the loot table
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-		protected void generateMaybeBox(AABB bounds, Random rand, float chance, int xMin, int yMin, int zMin, int xMax,
-				int yMax, int zMax, boolean requireNonAir, int requiredSkylight) {
-			for (int y = yMin; y <= yMax; ++y) {
-				for (int x = xMin; x <= xMax; ++x) {
-					for (int z = zMin; z <= zMax; ++z) {
-						// TODO place block
-						rand.nextFloat();
-					}
-				}
-			}
-		}
-
-		protected void randomlyPlaceBlock(Storage3D world, AABB bounds, Random rand, float chance, int x, int y, int z,
-				int block) {
-			if (rand.nextFloat() < chance) {
-				setBlockState(world, block, x, y, z, bounds);
-			}
+		protected StrongholdComponent(int distanceFromStart) {
+			super(distanceFromStart);
 		}
 
 		protected void placeDoor(Storage3D world, Random rand, AABB bounds, DoorType doorType, int x, int y, int z) {
@@ -1323,41 +1114,41 @@ public class StrongholdGen {
 				break;
 
 			case WOOD_DOOR:
-				this.setBlockState(world, Blocks.STONEBRICK, x, y, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 1, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 2, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 2, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 2, y, z, bounds);
-				this.setBlockState(world, Blocks.OAK_DOOR, x + 1, y, z, bounds);
-				this.setBlockState(world, Blocks.OAK_DOOR, x + 1, y + 1, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x, y, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x, y + 1, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x, y + 2, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 1, y + 2, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 2, y + 2, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 2, y + 1, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 2, y, z, bounds);
+				this.setBlock(world, Blocks.OAK_DOOR, x + 1, y, z, bounds);
+				this.setBlock(world, Blocks.OAK_DOOR, x + 1, y + 1, z, bounds);
 				break;
 
 			case GRATES:
-				this.setBlockState(world, Blocks.AIR, x + 1, y, z, bounds);
-				this.setBlockState(world, Blocks.AIR, x + 1, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x, y, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x + 1, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x + 2, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x + 2, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.IRON_BARS, x + 2, y, z, bounds);
+				this.setBlock(world, Blocks.AIR, x + 1, y, z, bounds);
+				this.setBlock(world, Blocks.AIR, x + 1, y + 1, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x, y, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x, y + 1, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x, y + 2, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x + 1, y + 2, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x + 2, y + 2, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x + 2, y + 1, z, bounds);
+				this.setBlock(world, Blocks.IRON_BARS, x + 2, y, z, bounds);
 				break;
 
 			case IRON_DOOR:
-				this.setBlockState(world, Blocks.STONEBRICK, x, y, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 1, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 2, y + 2, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 2, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.STONEBRICK, x + 2, y, z, bounds);
-				this.setBlockState(world, Blocks.IRON_DOOR, x + 1, y, z, bounds);
-				this.setBlockState(world, Blocks.IRON_DOOR, x + 1, y + 1, z, bounds);
-				this.setBlockState(world, Blocks.STONE_BUTTON, x + 2, y + 1, z + 1, bounds);
-				this.setBlockState(world, Blocks.STONE_BUTTON, x + 2, y + 1, z - 1, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x, y, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x, y + 1, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x, y + 2, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 1, y + 2, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 2, y + 2, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 2, y + 1, z, bounds);
+				this.setBlock(world, Blocks.STONEBRICK, x + 2, y, z, bounds);
+				this.setBlock(world, Blocks.IRON_DOOR, x + 1, y, z, bounds);
+				this.setBlock(world, Blocks.IRON_DOOR, x + 1, y + 1, z, bounds);
+				this.setBlock(world, Blocks.STONE_BUTTON, x + 2, y + 1, z + 1, bounds);
+				this.setBlock(world, Blocks.STONE_BUTTON, x + 2, y + 1, z - 1, bounds);
 			}
 		}
 
@@ -1379,7 +1170,7 @@ public class StrongholdGen {
 			}
 		}
 
-		protected Component getNextComponentAhead(StartingStairs startComponent, List<Component> components,
+		protected StrongholdComponent getNextComponentAhead(StartingStairs startComponent, List<Component> components,
 				Random rand, int hOffset, int vOffset) {
 			EnumFacing facing = this.getFacing();
 
@@ -1387,23 +1178,23 @@ public class StrongholdGen {
 				switch (facing) {
 				case NORTH:
 					return generateAndAddComponent(startComponent, components, rand,
-							this.boundingBox.getMinX() + hOffset, this.boundingBox.getMinY() + vOffset,
-							this.boundingBox.getMinZ() - 1, facing, this.getDistanceFromStart());
+							this.getBoundingBox().getMinX() + hOffset, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() - 1, facing, this.getDistanceFromStart());
 
 				case SOUTH:
 					return generateAndAddComponent(startComponent, components, rand,
-							this.boundingBox.getMinX() + hOffset, this.boundingBox.getMinY() + vOffset,
-							this.boundingBox.getMaxZ() + 1, facing, this.getDistanceFromStart());
+							this.getBoundingBox().getMinX() + hOffset, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMaxZ() + 1, facing, this.getDistanceFromStart());
 
 				case WEST:
-					return generateAndAddComponent(startComponent, components, rand, this.boundingBox.getMinX() - 1,
-							this.boundingBox.getMinY() + vOffset, this.boundingBox.getMinZ() + hOffset, facing,
-							this.getDistanceFromStart());
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMinX() - 1, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() + hOffset, facing, this.getDistanceFromStart());
 
 				case EAST:
-					return generateAndAddComponent(startComponent, components, rand, this.boundingBox.getMaxX() + 1,
-							this.boundingBox.getMinY() + vOffset, this.boundingBox.getMinZ() + hOffset, facing,
-							this.getDistanceFromStart());
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMaxX() + 1, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() + hOffset, facing, this.getDistanceFromStart());
 				default:
 					return null;
 				}
@@ -1411,64 +1202,64 @@ public class StrongholdGen {
 			return null;
 		}
 
-		protected Component getNextComponentLeft(StartingStairs startComponent, List<Component> components, Random rand,
-				int vOffset, int hOffset) {
-			EnumFacing facing = this.getFacing();
-
-			if (facing != null) {
-				switch (facing) {
-				case NORTH:
-					return generateAndAddComponent(startComponent, components, rand, this.boundingBox.getMinX() - 1,
-							this.boundingBox.getMinY() + vOffset, this.boundingBox.getMinZ() + hOffset, EnumFacing.WEST,
-							this.getDistanceFromStart());
-
-				case SOUTH:
-					return generateAndAddComponent(startComponent, components, rand, this.boundingBox.getMinX() - 1,
-							this.boundingBox.getMinY() + vOffset, this.boundingBox.getMinZ() + hOffset, EnumFacing.WEST,
-							this.getDistanceFromStart());
-
-				case WEST:
-					return generateAndAddComponent(startComponent, components, rand,
-							this.boundingBox.getMinX() + hOffset, this.boundingBox.getMinY() + vOffset,
-							this.boundingBox.getMinZ() - 1, EnumFacing.NORTH, this.getDistanceFromStart());
-
-				case EAST:
-					return generateAndAddComponent(startComponent, components, rand,
-							this.boundingBox.getMinX() + hOffset, this.boundingBox.getMinY() + vOffset,
-							this.boundingBox.getMinZ() - 1, EnumFacing.NORTH, this.getDistanceFromStart());
-				default:
-					return null;
-				}
-			}
-
-			return null;
-		}
-
-		protected Component getNextComponentRight(StartingStairs startComponent, List<Component> components,
+		protected StrongholdComponent getNextComponentLeft(StartingStairs startComponent, List<Component> components,
 				Random rand, int vOffset, int hOffset) {
 			EnumFacing facing = this.getFacing();
 
 			if (facing != null) {
 				switch (facing) {
 				case NORTH:
-					return generateAndAddComponent(startComponent, components, rand, this.boundingBox.getMaxX() + 1,
-							this.boundingBox.getMinY() + vOffset, this.boundingBox.getMinZ() + hOffset, EnumFacing.EAST,
-							this.getDistanceFromStart());
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMinX() - 1, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() + hOffset, EnumFacing.WEST, this.getDistanceFromStart());
 
 				case SOUTH:
-					return generateAndAddComponent(startComponent, components, rand, this.boundingBox.getMaxX() + 1,
-							this.boundingBox.getMinY() + vOffset, this.boundingBox.getMinZ() + hOffset, EnumFacing.EAST,
-							this.getDistanceFromStart());
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMinX() - 1, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() + hOffset, EnumFacing.WEST, this.getDistanceFromStart());
 
 				case WEST:
 					return generateAndAddComponent(startComponent, components, rand,
-							this.boundingBox.getMinX() + hOffset, this.boundingBox.getMinY() + vOffset,
-							this.boundingBox.getMaxZ() + 1, EnumFacing.SOUTH, this.getDistanceFromStart());
+							this.getBoundingBox().getMinX() + hOffset, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() - 1, EnumFacing.NORTH, this.getDistanceFromStart());
 
 				case EAST:
 					return generateAndAddComponent(startComponent, components, rand,
-							this.boundingBox.getMinX() + hOffset, this.boundingBox.getMinY() + vOffset,
-							this.boundingBox.getMaxZ() + 1, EnumFacing.SOUTH, this.getDistanceFromStart());
+							this.getBoundingBox().getMinX() + hOffset, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() - 1, EnumFacing.NORTH, this.getDistanceFromStart());
+				default:
+					return null;
+				}
+			}
+
+			return null;
+		}
+
+		protected StrongholdComponent getNextComponentRight(StartingStairs startComponent, List<Component> components,
+				Random rand, int vOffset, int hOffset) {
+			EnumFacing facing = this.getFacing();
+
+			if (facing != null) {
+				switch (facing) {
+				case NORTH:
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMaxX() + 1, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() + hOffset, EnumFacing.EAST, this.getDistanceFromStart());
+
+				case SOUTH:
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMaxX() + 1, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMinZ() + hOffset, EnumFacing.EAST, this.getDistanceFromStart());
+
+				case WEST:
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMinX() + hOffset, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMaxZ() + 1, EnumFacing.SOUTH, this.getDistanceFromStart());
+
+				case EAST:
+					return generateAndAddComponent(startComponent, components, rand,
+							this.getBoundingBox().getMinX() + hOffset, this.getBoundingBox().getMinY() + vOffset,
+							this.getBoundingBox().getMaxZ() + 1, EnumFacing.SOUTH, this.getDistanceFromStart());
 				default:
 					return null;
 				}
@@ -1484,20 +1275,14 @@ public class StrongholdGen {
 		public static enum DoorType {
 			OPENING, WOOD_DOOR, GRATES, IRON_DOOR;
 		}
-
-		public abstract static class BlockSelector {
-			public abstract void selectBlocks(Random rand, int x, int y, int z, boolean wall);
-
-			public abstract int getBlockState();
-		}
 	}
 
 	private static interface ComponentCreator {
-		Component create(List<Component> components, Random rand, int x, int y, int z, EnumFacing facing,
+		StrongholdComponent create(List<Component> components, Random rand, int x, int y, int z, EnumFacing facing,
 				int distanceFromStart);
 	}
 
-	private static class StoneGenerator extends Component.BlockSelector {
+	private static class StoneGenerator extends BlockSelector {
 		private int block;
 
 		private StoneGenerator() {

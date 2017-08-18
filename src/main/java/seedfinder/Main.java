@@ -6,9 +6,9 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 import seedfinder.biome.BiomeProvider;
-import seedfinder.stronghold.StrongholdGen;
-import seedfinder.stronghold.StrongholdPosFinder;
-import seedfinder.stronghold.StrongholdPosFinder.Stronghold;
+import seedfinder.structure.StrongholdGen;
+import seedfinder.structure.StrongholdPosFinder;
+import seedfinder.structure.StrongholdPosFinder.Stronghold;
 import seedfinder.worldgen.WorldGen;
 
 public class Main {
