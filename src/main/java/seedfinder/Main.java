@@ -1,14 +1,15 @@
 package seedfinder;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
 import seedfinder.biome.BiomeProvider;
+import seedfinder.structure.StrongholdFinder;
+import seedfinder.structure.StrongholdFinder.Stronghold;
 import seedfinder.structure.StrongholdGen;
-import seedfinder.structure.StrongholdPosFinder;
-import seedfinder.structure.StrongholdPosFinder.Stronghold;
 import seedfinder.worldgen.WorldGen;
 
 public class Main {
@@ -26,7 +27,7 @@ public class Main {
 		if ("seed".equalsIgnoreCase(args[0])) {
 			seed = Long.parseLong(args[1]);
 			eyesThreshold = 0; // so we print all strongholds
-			printSeedInfo(new Random(), new Storage3D(Blocks.AIR), new ChunkPos[3]);
+			printSeedInfo(new Random(), new Storage3D(Blocks.AIR));
 		} else {
 			seed = Long.parseLong(args[0]);
 			eyesThreshold = Integer.parseInt(args[1]);
@@ -34,45 +35,53 @@ public class Main {
 		}
 	}
 
-	private static void printSeedInfo(Random random, Storage3D world, ChunkPos[] strongholdPositions) {
+	private static void printSeedInfo(Random random, Storage3D world) {
 		// Initialize things to the seed
 		WorldGen.setWorldSeed(random, seed);
 		BiomeProvider.setWorldSeed(seed);
+		StrongholdFinder.INSTANCE.reset();
 
 		// Get stronghold positions
-		StrongholdPosFinder.getStrongholdPositions(random, seed, strongholdPositions);
+		StrongholdFinder.INSTANCE.findFirstLayerPositions(random, seed);
 
-		for (ChunkPos strongholdPos : strongholdPositions) {
-			int eyes = StrongholdPosFinder.getNumEyes(world, random, seed, strongholdPos);
+		for (ChunkPos strongholdPos : new HashSet<>(StrongholdFinder.INSTANCE.getStructurePositions())) {
+			int eyes = StrongholdFinder.INSTANCE.getNumEyes(world, random, seed, strongholdPos, false);
 
 			if (eyes >= eyesThreshold) {
-				Stronghold stronghold = StrongholdPosFinder.getStronghold(random, seed, strongholdPos);
+				// Check for false positive
+				eyes = StrongholdFinder.INSTANCE.getNumEyes(world, random, seed, strongholdPos, true);
 
-				// Output things about the stronghold
-				System.out.println("------------------");
-				System.out.println("Seed: " + seed);
-				System.out.println("Stronghold: " + strongholdPos);
-				System.out.println("Portal: " + stronghold.getPortalRoom().getPortalPos());
-				System.out.println("Eyes: " + eyes);
+				if (eyes >= eyesThreshold) {
+					WorldGen.setMapGenSeedForChunk(random, seed, strongholdPos.getX(), strongholdPos.getZ());
+					Stronghold stronghold = (Stronghold) StrongholdFinder.INSTANCE.getStructure(random, strongholdPos);
 
-				System.out.println("Corridor chest locations:");
-				stronghold.getComponents().stream().filter(it -> it instanceof StrongholdGen.ChestCorridor)
-						.map(it -> (StrongholdGen.ChestCorridor) it).map(StrongholdGen.ChestCorridor::getChestPos)
-						.forEach(it -> System.out.println("- " + it));
+					// Output things about the stronghold
+					System.out.println("------------------");
+					System.out.println("Seed: " + seed);
+					System.out.println("Stronghold: " + strongholdPos);
+					System.out.println("Portal: " + stronghold.getPortalRoom().getPortalPos());
+					System.out.println("Eyes: " + eyes);
 
-				System.out.println("Library chest locations:");
-				stronghold.getComponents().stream().filter(it -> it instanceof StrongholdGen.Library)
-						.map(it -> (StrongholdGen.Library) it).flatMap(it -> {
-							Stream.Builder<BlockPos> chestPositions = Stream.builder();
-							chestPositions.add(it.getBottomChestPos());
-							it.getTopChestPos().ifPresent(chestPositions);
-							return chestPositions.build();
-						}).forEach(it -> System.out.println("- " + it));
+					System.out.println("Corridor chest locations:");
+					stronghold.getComponents().stream().filter(it -> it instanceof StrongholdGen.ChestCorridor)
+							.map(it -> (StrongholdGen.ChestCorridor) it).map(StrongholdGen.ChestCorridor::getChestPos)
+							.forEach(it -> System.out.println("- " + it));
 
-				System.out.println("Room crossing chest locations:");
-				stronghold.getComponents().stream().filter(it -> it instanceof StrongholdGen.RoomCrossing)
-						.map(it -> (StrongholdGen.RoomCrossing) it).map(StrongholdGen.RoomCrossing::getChestPos)
-						.filter(Optional::isPresent).map(Optional::get).forEach(it -> System.out.println("- " + it));
+					System.out.println("Library chest locations:");
+					stronghold.getComponents().stream().filter(it -> it instanceof StrongholdGen.Library)
+							.map(it -> (StrongholdGen.Library) it).flatMap(it -> {
+								Stream.Builder<BlockPos> chestPositions = Stream.builder();
+								chestPositions.add(it.getBottomChestPos());
+								it.getTopChestPos().ifPresent(chestPositions);
+								return chestPositions.build();
+							}).forEach(it -> System.out.println("- " + it));
+
+					System.out.println("Room crossing chest locations:");
+					stronghold.getComponents().stream().filter(it -> it instanceof StrongholdGen.RoomCrossing)
+							.map(it -> (StrongholdGen.RoomCrossing) it).map(StrongholdGen.RoomCrossing::getChestPos)
+							.filter(Optional::isPresent).map(Optional::get)
+							.forEach(it -> System.out.println("- " + it));
+				}
 			}
 		}
 	}
@@ -97,10 +106,9 @@ public class Main {
 
 		Random random = new Random();
 		Storage3D world = new Storage3D(Blocks.AIR);
-		ChunkPos[] strongholdPositions = new ChunkPos[3];
 
 		while (true) {
-			printSeedInfo(random, world, strongholdPositions);
+			printSeedInfo(random, world);
 			seed++;
 		}
 	}

@@ -3,10 +3,12 @@ package seedfinder.worldgen;
 import java.util.Random;
 
 import seedfinder.Blocks;
+import seedfinder.ChunkPos;
 import seedfinder.MathHelper;
 import seedfinder.Storage3D;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.structure.StrongholdFinder;
 
 public class WorldGen {
 
@@ -57,6 +59,7 @@ public class WorldGen {
 	}
 
 	public static void createOverworld(Random rand, long seed, int x, int z, Storage3D chunk) {
+		ChunkPos pos = new ChunkPos(x, z);
 		chunk.moveAll(x * -16, 0, z * -16);
 
 		rand.setSeed(x * 341873128712L + z * 132897987541L);
@@ -67,7 +70,19 @@ public class WorldGen {
 		CaveGen.generate(rand, seed, x, z, chunk);
 		RavineGen.generate(rand, seed, x, z, chunk);
 
+		// TODO: village gen
+		// TODO: mineshaft gen
+		StrongholdFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
+
 		chunk.moveAll(x * 16, 0, z * 16);
+	}
+
+	public static void populateOverworld(Random rand, long seed, int x, int z, Storage3D chunk) {
+		setSeedForPopulation(rand, seed, x, z);
+
+		// TODO: villages
+		// TODO: mineshafts
+		StrongholdFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 	}
 
 	private static void setBlocksInChunk(int x, int z, Storage3D chunk) {

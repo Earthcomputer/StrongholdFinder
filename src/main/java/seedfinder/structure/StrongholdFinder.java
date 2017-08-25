@@ -1,60 +1,81 @@
 package seedfinder.structure;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
-import seedfinder.AABB;
 import seedfinder.BlockPos;
 import seedfinder.ChunkPos;
+import seedfinder.CountEyesTask;
+import seedfinder.DoneEnoughException;
 import seedfinder.Storage3D;
+import seedfinder.Task;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
 import seedfinder.worldgen.WorldGen;
 
-public class StrongholdPosFinder {
+public class StrongholdFinder extends StructureFinder {
+
+	public static final StrongholdFinder INSTANCE = new StrongholdFinder();
 
 	public static final int NUM_STRONGHOLDS = 128;
 
 	private static final Set<Integer> ALLOWED_BIOMES = Biomes.allBiomesExcept(it -> Biomes.getBaseHeight(it) <= 0);
 
-	private StrongholdPosFinder() {
+	private StrongholdFinder() {
 	}
 
-	/**
-	 * Finds the starting positions of the first <tt>positions.length</tt>
-	 * strongholds.
-	 */
-	public static void getStrongholdPositions(Random rand, long seed, ChunkPos[] positions) {
+	public void findFirstLayerPositions(Random rand, long seed) {
+		// 80 is the distance which makes the maximum layer evaluate to 0 (the
+		// first layer)
+		findStructurePositions(rand, seed, new ChunkPos(-80, -80), new ChunkPos(80, 80));
+	}
+
+	@Override
+	public void findStructurePositions(Random rand, long seed, ChunkPos fromPos, ChunkPos toPos) {
 		rand.setSeed(seed);
 
 		final double distance = 32;
+
+		// Get the maximum layer we need to search to
+		int furthestDistance = Math.max(Math.abs(fromPos.getX()), Math.abs(fromPos.getZ()));
+		furthestDistance = Math.max(furthestDistance, Math.abs(toPos.getX()));
+		furthestDistance = Math.max(furthestDistance, Math.abs(toPos.getZ()));
+		// could be an extra 120 blocks (7.5 chunks) further due to biome
+		// correction
+		furthestDistance += 8;
+		// the maximum layer is found by rearranging the original formula
+		int maxLayer = (int) Math.ceil((furthestDistance - 4 * distance - -0.5 * distance * 2.5) / (6 * distance));
+
 		int spread = 3;
 		int layer = 0;
 		int strongholdsInLayer = 0;
 
 		double strongholdAngle = rand.nextDouble() * Math.PI * 2;
 
-		for (int i = 0; i < positions.length; i++) {
-			// Get initial position
-			double strongholdDistance = 4 * distance + distance * layer * 6
-					+ (rand.nextDouble() - 0.5) * distance * 2.5;
-			int chunkX = (int) Math.round(Math.cos(strongholdAngle) * strongholdDistance);
-			int chunkZ = (int) Math.round(Math.sin(strongholdAngle) * strongholdDistance);
+		for (int i = 0; layer <= maxLayer && i < NUM_STRONGHOLDS; i++) {
+			// Don't recalculate strongholds we've already found
+			if (i == structurePositions.size()) {
+				// Get initial position
+				double strongholdDistance = 4 * distance + distance * layer * 6
+						+ (rand.nextDouble() - 0.5) * distance * 2.5;
+				int chunkX = (int) Math.round(Math.cos(strongholdAngle) * strongholdDistance);
+				int chunkZ = (int) Math.round(Math.sin(strongholdAngle) * strongholdDistance);
 
-			// Correct position based on biomes
-			BlockPos biomePos = BiomeProvider.findBiomePosition((chunkX << 4) + 8, (chunkZ << 4) + 8, 112,
-					ALLOWED_BIOMES, rand);
-			if (biomePos != null) {
-				chunkX = biomePos.getX() >> 4;
-				chunkZ = biomePos.getZ() >> 4;
+				// Correct position based on biomes
+				BlockPos biomePos = BiomeProvider.findBiomePosition((chunkX << 4) + 8, (chunkZ << 4) + 8, 112,
+						ALLOWED_BIOMES, rand);
+				if (biomePos != null) {
+					chunkX = biomePos.getX() >> 4;
+					chunkZ = biomePos.getZ() >> 4;
+				}
+
+				structurePositions.add(new ChunkPos(chunkX, chunkZ));
 			}
 
-			positions[i] = new ChunkPos(chunkX, chunkZ);
-
 			// Increment all the variables
-			strongholdAngle += (Math.PI * 2) / spread;
+			strongholdAngle += Math.PI * 2 / spread;
 			strongholdsInLayer++;
 
 			if (strongholdsInLayer == spread) {
@@ -70,17 +91,16 @@ public class StrongholdPosFinder {
 	/**
 	 * Gets the number of eyes of the stronghold at the given location
 	 */
-	public static int getNumEyes(Storage3D world, Random rand, long seed, ChunkPos location) {
-		Stronghold stronghold = getStronghold(rand, seed, location);
-		generatePortalChunks(world, rand, seed, stronghold);
-		return StrongholdGen.getNumEyes();
+	public int getNumEyes(Storage3D world, Random rand, long seed, ChunkPos location, boolean accurate) {
+		WorldGen.setMapGenSeedForChunk(rand, seed, location.getX(), location.getZ());
+		Stronghold stronghold = (Stronghold) getStructure(rand, location);
+		generatePortalChunks(world, rand, seed, stronghold, accurate);
+		Optional<CountEyesTask> task = Task.getCurrentTask(Task.Type.COUNT_EYES);
+		return task.orElseThrow(AssertionError::new).getEyes();
 	}
 
-	/**
-	 * Gets the {@link Stronghold} that would generate at the given location
-	 */
-	public static Stronghold getStronghold(Random rand, long seed, ChunkPos location) {
-		WorldGen.setMapGenSeedForChunk(rand, seed, location.getX(), location.getZ());
+	@Override
+	public Stronghold createStructure(Random rand, ChunkPos location) {
 		rand.nextInt(); // why? idk, but we must conform to Minecraft...
 
 		// Create different configurations of stronghold until one has a portal
@@ -93,15 +113,16 @@ public class StrongholdPosFinder {
 	}
 
 	// Generates chunks around the end portal to get the likely number of eyes
-	private static void generatePortalChunks(Storage3D world, Random rand, long worldSeed, Stronghold stronghold) {
-		StrongholdGen.resetNumEyes();
+	private static void generatePortalChunks(Storage3D world, Random rand, long worldSeed, Stronghold stronghold,
+			boolean accurate) {
+		Task.setCurrentTask(new CountEyesTask());
 
 		BlockPos minPortalPos = stronghold.getPortalRoom().getPortalPos();
 		BlockPos maxPortalPos = minPortalPos.add(4, 0, 4);
-		int minChunkX = (minPortalPos.getX() - 8) >> 4;
-		int minChunkZ = (minPortalPos.getZ() - 8) >> 4;
-		int maxChunkX = (maxPortalPos.getX() - 8) >> 4;
-		int maxChunkZ = (maxPortalPos.getZ() - 8) >> 4;
+		int minChunkX = minPortalPos.getX() - 8 >> 4;
+		int minChunkZ = minPortalPos.getZ() - 8 >> 4;
+		int maxChunkX = maxPortalPos.getX() - 8 >> 4;
+		int maxChunkZ = maxPortalPos.getZ() - 8 >> 4;
 		int minX = minChunkX << 4;
 		int minZ = minChunkZ << 4;
 
@@ -119,22 +140,14 @@ public class StrongholdPosFinder {
 		// Populate the chunks (all we do is the stronghold)
 		for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
 			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
-				// TODO: perhaps simulate mineshafts and villages if an
-				// "accurate" flag
-				// is true?
-				WorldGen.setSeedForPopulation(rand, worldSeed, chunkX, chunkZ);
-
-				AABB popBB = new AABB((chunkX << 4) + 8, 1, (chunkZ << 4) + 8, (chunkX << 4) + 8 + 15, 512,
-						(chunkZ << 4) + 8 + 15);
-
-				// Generate the stronghold components that are in the chunk
-				Iterator<Component> itr = stronghold.getComponents().iterator();
-				while (itr.hasNext()) {
-					Component component = itr.next();
-					if (component.getBoundingBox().intersectsWith(popBB)
-							&& !component.placeInWorld(world, rand, popBB)) {
-						itr.remove();
+				try {
+					if (accurate) {
+						WorldGen.populateOverworld(rand, worldSeed, chunkX, chunkZ, world);
+					} else {
+						WorldGen.setSeedForPopulation(rand, worldSeed, chunkX, chunkZ);
+						stronghold.populate(world, rand, chunkX, chunkZ);
 					}
+				} catch (DoneEnoughException e) {
 				}
 			}
 		}

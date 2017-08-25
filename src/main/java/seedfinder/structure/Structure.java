@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import seedfinder.AABB;
+import seedfinder.Storage3D;
 
 /**
  * Represents a configuration of structure components (rooms, corridors, etc.)
@@ -47,6 +48,21 @@ public abstract class Structure {
 		boundingBox = boundingBox.getOffset(0, toMoveUp, 0);
 
 		components.forEach(c -> c.setBoundingBox(c.getBoundingBox().getOffset(0, toMoveUp, 0)));
+	}
+
+	/**
+	 * Populates this structure into the world. Assumes the RNG's seed has
+	 * already been initialized.
+	 */
+	public void populate(Storage3D world, Random rand, int chunkX, int chunkZ) {
+		AABB popBB = new AABB((chunkX << 4) + 8, 1, (chunkZ << 4) + 8, (chunkX << 4) + 8 + 15, 512,
+				(chunkZ << 4) + 8 + 15);
+
+		components.forEach(component -> {
+			if (component.getBoundingBox().intersectsWith(popBB)) {
+				component.placeInWorld(world, rand, popBB);
+			}
+		});
 	}
 
 }

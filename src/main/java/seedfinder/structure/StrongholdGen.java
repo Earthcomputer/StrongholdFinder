@@ -8,8 +8,11 @@ import java.util.Random;
 import seedfinder.AABB;
 import seedfinder.BlockPos;
 import seedfinder.Blocks;
+import seedfinder.CountEyesTask;
+import seedfinder.DoneEnoughException;
 import seedfinder.EnumFacing;
 import seedfinder.Storage3D;
+import seedfinder.Task;
 import seedfinder.structure.Component.BlockSelector;
 
 public class StrongholdGen {
@@ -48,8 +51,6 @@ public class StrongholdGen {
 
 	private static final StoneGenerator STONE_GEN = new StoneGenerator();
 
-	private static int eyes = 0;
-
 	public static void prepareStructurePieces() {
 		componentTypePool = new ArrayList<>();
 
@@ -59,14 +60,6 @@ public class StrongholdGen {
 		}
 
 		nextComponentCreator = null;
-	}
-
-	public static int getNumEyes() {
-		return eyes;
-	}
-
-	public static void resetNumEyes() {
-		eyes = 0;
 	}
 
 	private static void recalcTotalWeight() {
@@ -745,6 +738,10 @@ public class StrongholdGen {
 			placePortalFrame(world, eyes[10], 7, 3, 10, bounds);
 			placePortalFrame(world, eyes[11], 7, 3, 11, bounds);
 
+			if (Task.isCurrentTaskOfType(Task.Type.COUNT_EYES)) {
+				throw new DoneEnoughException();
+			}
+
 			if (isPortalComplete) {
 				setBlock(world, Blocks.END_PORTAL, 4, 3, 9, bounds);
 				setBlock(world, Blocks.END_PORTAL, 5, 3, 9, bounds);
@@ -773,7 +770,8 @@ public class StrongholdGen {
 			if (popBB.contains(getXWithOffset(x, z), getYWithOffset(y), getZWithOffset(x, z))) {
 				setBlock(world, Blocks.END_PORTAL_FRAME, x, y, z, popBB);
 				if (eye) {
-					eyes++;
+					Optional<CountEyesTask> task = Task.getCurrentTask(Task.Type.COUNT_EYES);
+					task.ifPresent(CountEyesTask::addEye);
 				}
 			}
 		}
