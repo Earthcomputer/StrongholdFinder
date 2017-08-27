@@ -9,6 +9,7 @@ import seedfinder.Storage3D;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
 import seedfinder.structure.StrongholdFinder;
+import seedfinder.structure.VillageFinder;
 
 public class WorldGen {
 
@@ -70,8 +71,8 @@ public class WorldGen {
 		CaveGen.generate(rand, seed, x, z, chunk);
 		RavineGen.generate(rand, seed, x, z, chunk);
 
-		// TODO: village gen
 		// TODO: mineshaft gen
+		VillageFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 		StrongholdFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 
 		chunk.moveAll(x * 16, 0, z * 16);
@@ -80,8 +81,8 @@ public class WorldGen {
 	public static void populateOverworld(Random rand, long seed, int x, int z, Storage3D chunk) {
 		setSeedForPopulation(rand, seed, x, z);
 
-		// TODO: villages
 		// TODO: mineshafts
+		VillageFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		StrongholdFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 	}
 
@@ -258,6 +259,10 @@ public class WorldGen {
 		}
 	}
 
+	/**
+	 * Sets a random seed used for structure layout, called individually by each
+	 * structure generator
+	 */
 	public static void setMapGenSeedForChunk(Random rand, long worldSeed, int chunkX, int chunkZ) {
 		rand.setSeed(worldSeed);
 		long a = rand.nextLong();
@@ -265,6 +270,17 @@ public class WorldGen {
 		rand.setSeed((chunkX * a) ^ (chunkZ * b) ^ worldSeed);
 	}
 
+	/**
+	 * Sets a random seed based on the inputs. Equivalent to the Minecraft
+	 * method <tt>World.setRandomSeed(int, int, int)</tt>
+	 */
+	public static void setRandomSeed(Random rand, long worldSeed, int chunkX, int chunkZ, int uniquifier) {
+		rand.setSeed(chunkX * 341873128712L + chunkZ * 132897987541L + worldSeed + uniquifier);
+	}
+
+	/**
+	 * Called at the beginning of each chunk population
+	 */
 	public static void setSeedForPopulation(Random rand, long worldSeed, int chunkX, int chunkZ) {
 		rand.setSeed(worldSeed);
 		long a = rand.nextLong() / 2 * 2 + 1;

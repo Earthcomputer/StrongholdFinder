@@ -82,7 +82,23 @@ public abstract class StructureFinder {
 	 * not been initialized according to the world seed. Implementations of this
 	 * method are encouraged to cache the results where possible.
 	 */
-	public abstract void findStructurePositions(Random rand, long worldSeed, ChunkPos fromPos, ChunkPos toPos);
+	public void findStructurePositions(Random rand, long worldSeed, ChunkPos fromPos, ChunkPos toPos) {
+		for (int x = Math.min(fromPos.getX(), toPos.getX()), xe = Math.max(fromPos.getX(),
+				toPos.getX()); x <= xe; x++) {
+			for (int z = Math.min(fromPos.getZ(), toPos.getZ()), ze = Math.max(fromPos.getZ(),
+					toPos.getZ()); z <= ze; z++) {
+				ChunkPos pos = new ChunkPos(x, z);
+				if (isStructureAt(rand, worldSeed, pos)) {
+					structurePositions.add(pos);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Returns whether a structure can start at the given coordinates
+	 */
+	public abstract boolean isStructureAt(Random rand, long worldSeed, ChunkPos pos);
 
 	/**
 	 * Creates a new structure at the given position. This method assumes that
@@ -107,7 +123,7 @@ public abstract class StructureFinder {
 			WorldGen.setMapGenSeedForChunk(structureLayoutRand, worldSeed, chunkX, chunkZ);
 			Structure structure = getStructure(structureLayoutRand, structurePos);
 
-			if (structure.getBoundingBox().intersectsWith(popX, popZ, popX + 15, popZ + 15)) {
+			if (structure.isValid() && structure.getBoundingBox().intersectsWith(popX, popZ, popX + 15, popZ + 15)) {
 				structure.populate(world, rand, chunkX, chunkZ);
 			}
 		});

@@ -22,6 +22,10 @@ public abstract class Structure {
 	public AABB getBoundingBox() {
 		return boundingBox;
 	}
+	
+	public boolean isValid() {
+		return true;
+	}
 
 	/**
 	 * Updates the main bounding box to the minimum-sized bounding box

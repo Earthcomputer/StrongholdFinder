@@ -10,6 +10,7 @@ import seedfinder.biome.BiomeProvider;
 import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.StrongholdFinder.Stronghold;
 import seedfinder.structure.StrongholdGen;
+import seedfinder.structure.VillageFinder;
 import seedfinder.worldgen.WorldGen;
 
 public class Main {
@@ -39,6 +40,7 @@ public class Main {
 		// Initialize things to the seed
 		WorldGen.setWorldSeed(random, seed);
 		BiomeProvider.setWorldSeed(seed);
+		VillageFinder.INSTANCE.reset();
 		StrongholdFinder.INSTANCE.reset();
 
 		// Get stronghold positions

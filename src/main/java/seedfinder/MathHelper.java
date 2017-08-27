@@ -1,5 +1,7 @@
 package seedfinder;
 
+import java.util.Random;
+
 /**
  * Helper math functions, mainly here to ensure exact equivalence with the
  * Minecraft world generator.
@@ -64,6 +66,13 @@ public class MathHelper {
 	 */
 	public static float cos(float val) {
 		return SIN_TABLE[(int) (val * 65536 / (2 * Math.PI) + 65536 / 4) & 65535];
+	}
+
+	/**
+	 * Returns a random value between a minimum and maximum, inclusive
+	 */
+	public static int randomRange(Random rand, int min, int max) {
+		return min >= max ? min : rand.nextInt(max - min + 1) + min;
 	}
 
 }

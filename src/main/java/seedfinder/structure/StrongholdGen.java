@@ -1478,6 +1478,7 @@ public class StrongholdGen {
 		}
 	}
 
+	@FunctionalInterface
 	private static interface ComponentCreator {
 		StrongholdComponent create(List<Component> components, Random rand, int x, int y, int z, EnumFacing facing,
 				int distanceFromStart);

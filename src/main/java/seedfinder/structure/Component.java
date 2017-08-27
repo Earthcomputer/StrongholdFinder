@@ -242,6 +242,56 @@ public abstract class Component {
 	}
 
 	/**
+	 * Clears a column of blocks from the current position upwards, replacing it
+	 * with air. Stops once air is reached.
+	 */
+	protected void clearAbove(Storage3D world, int x, int y, int z, AABB bounds) {
+		int offX = getXWithOffset(x, z);
+		int offY = getYWithOffset(y);
+		int offZ = getZWithOffset(x, z);
+
+		if (bounds.contains(offX, offY, offZ)) {
+			while (!Blocks.isAir(world.get(offX, offY, offZ)) && offY < 255) {
+				world.set(offX, offY, offZ, Blocks.AIR);
+				offY++;
+			}
+		}
+	}
+
+	/**
+	 * Replaces a column of blocks from the current position downwards,
+	 * replacing it with a given substitute block. Stops once a solid block is
+	 * reached.
+	 */
+	protected void fillBelow(Storage3D world, int substitute, int x, int y, int z, AABB bounds) {
+		int offX = getXWithOffset(x, z);
+		int offY = getYWithOffset(y);
+		int offZ = getZWithOffset(x, z);
+
+		if (bounds.contains(offX, offY, offZ)) {
+			while ((Blocks.isAir(world.get(offX, offY, offZ)) || Blocks.isLiquid(world.get(offX, offY, offZ)))
+					&& offY > 1) {
+				world.set(offX, offY, offZ, substitute);
+				offY--;
+			}
+		}
+	}
+
+	/**
+	 * Returns the block above the top solid block
+	 */
+	protected int getTopSolidOrLiquidBlock(Storage3D world, int x, int z) {
+		int y;
+		for (y = 255; y >= 0; y--) {
+			int block = world.get(x, y, z);
+			if (Blocks.blocksMovement(block) && block != Blocks.LEAVES && block != Blocks.LEAVES2) {
+				break;
+			}
+		}
+		return y + 1;
+	}
+
+	/**
 	 * Places a chest in the world at the given coordinates relative to this
 	 * component's position and orientation
 	 */

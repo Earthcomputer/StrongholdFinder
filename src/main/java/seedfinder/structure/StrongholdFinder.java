@@ -33,6 +33,12 @@ public class StrongholdFinder extends StructureFinder {
 	}
 
 	@Override
+	public boolean isStructureAt(Random rand, long worldSeed, ChunkPos pos) {
+		findStructurePositions(rand, worldSeed, pos, pos);
+		return structurePositions.contains(pos);
+	}
+
+	@Override
 	public void findStructurePositions(Random rand, long seed, ChunkPos fromPos, ChunkPos toPos) {
 		rand.setSeed(seed);
 
