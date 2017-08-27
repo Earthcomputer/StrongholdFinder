@@ -572,12 +572,11 @@ public class Biomes {
 		if (brycePillars) {
 			int i = (x & -16) + (z & 15);
 			int j = (z & -16) + (x & 15);
-			double d0 = Math.min(Math.abs(noiseVal),
-					WorldGen.mesaPillarNoise.getValue((double) i * 0.25D, (double) j * 0.25D));
+			double d0 = Math.min(Math.abs(noiseVal), WorldGen.mesaPillarNoise.getValue(i * 0.25D, j * 0.25D));
 
 			if (d0 > 0.0D) {
 				final double d1 = 0.001953125D;
-				double d2 = Math.abs(WorldGen.mesaPillarRoofNoise.getValue((double) i * d1, (double) j * 0.001953125D));
+				double d2 = Math.abs(WorldGen.mesaPillarRoofNoise.getValue(i * d1, j * 0.001953125D));
 				d4 = d0 * d0 * 2.5D;
 				double d3 = Math.ceil(d2 * 50.0D) + 14.0D;
 

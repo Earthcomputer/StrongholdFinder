@@ -16,7 +16,7 @@ public class GenLayerRemoveTooMuchOcean extends GenLayer {
 		int parentWidth = width + 2;
 		int parentHeight = height + 2;
 		int[] parentValues = parent.getValues(parentX, parentZ, parentWidth, parentHeight);
-		
+
 		int[] values = IntCache.get(width * height);
 
 		for (int dz = 0; dz < height; dz++) {

@@ -25,9 +25,9 @@ public class RavineGen {
 	private static void recursiveGenerate(Random rand, int chunkX, int chunkZ, int originalX, int originalZ,
 			Storage3D chunk) {
 		if (rand.nextInt(50) == 0) {
-			double x = (double) (chunkX * 16 + rand.nextInt(16));
-			double y = (double) (rand.nextInt(rand.nextInt(40) + 8) + 20);
-			double z = (double) (chunkZ * 16 + rand.nextInt(16));
+			double x = chunkX * 16 + rand.nextInt(16);
+			double y = rand.nextInt(rand.nextInt(40) + 8) + 20;
+			double z = chunkZ * 16 + rand.nextInt(16);
 			final int numRavines = 1;
 
 			for (int i = 0; i < numRavines; i++) {
@@ -43,8 +43,8 @@ public class RavineGen {
 			double z, float maxRadius, float yaw, float pitch, int startDistance, int endDistance,
 			double widthToHeightRatio) {
 		Random rand = new Random(seed);
-		double chunkCenterX = (double) (originalX * 16 + 8);
-		double chunkCenterZ = (double) (originalZ * 16 + 8);
+		double chunkCenterX = originalX * 16 + 8;
+		double chunkCenterZ = originalZ * 16 + 8;
 		float deltaYaw = 0.0F;
 		float deltaPitch = 0.0F;
 
@@ -71,16 +71,15 @@ public class RavineGen {
 		}
 
 		for (int distance = startDistance; distance < endDistance; distance++) {
-			double hRadius = 1.5D
-					+ (double) (MathHelper.sin((float) distance * (float) Math.PI / (float) endDistance) * maxRadius);
+			double hRadius = 1.5D + MathHelper.sin(distance * (float) Math.PI / endDistance) * maxRadius;
 			double vRadius = hRadius * widthToHeightRatio;
-			hRadius = hRadius * ((double) rand.nextFloat() * 0.25D + 0.75D);
-			vRadius = vRadius * ((double) rand.nextFloat() * 0.25D + 0.75D);
+			hRadius = hRadius * (rand.nextFloat() * 0.25D + 0.75D);
+			vRadius = vRadius * (rand.nextFloat() * 0.25D + 0.75D);
 			float dh = MathHelper.cos(pitch);
 			float dy = MathHelper.sin(pitch);
-			x += (double) (MathHelper.cos(yaw) * dh);
-			y += (double) dy;
-			z += (double) (MathHelper.sin(yaw) * dh);
+			x += MathHelper.cos(yaw) * dh;
+			y += dy;
+			z += MathHelper.sin(yaw) * dh;
 			pitch = pitch * 0.7F;
 			pitch = pitch + deltaPitch * 0.05F;
 			yaw += deltaYaw * 0.05F;
@@ -92,9 +91,9 @@ public class RavineGen {
 			if (isRoom || rand.nextInt(4) != 0) {
 				double dxFromCenter = x - chunkCenterX;
 				double dzFromCenter = z - chunkCenterZ;
-				double distanceLeft = (double) (endDistance - distance);
-				double d6 = (double) (maxRadius + 2.0F + 16.0F); // TODO: what
-																	// is this?
+				double distanceLeft = endDistance - distance;
+				double d6 = maxRadius + 2.0F + 16.0F; // TODO: what
+														// is this?
 
 				if (dxFromCenter * dxFromCenter + dzFromCenter * dzFromCenter - distanceLeft * distanceLeft > d6 * d6) {
 					return;
@@ -156,17 +155,16 @@ public class RavineGen {
 
 					if (!foundWater) {
 						for (int blockX = minX; blockX < maxX; ++blockX) {
-							double normDx = ((double) (blockX + originalX * 16) + 0.5D - x) / hRadius;
+							double normDx = (blockX + originalX * 16 + 0.5D - x) / hRadius;
 
 							for (int blockZ = minZ; blockZ < maxZ; ++blockZ) {
-								double normDz = ((double) (blockZ + originalZ * 16) + 0.5D - z) / hRadius;
+								double normDz = (blockZ + originalZ * 16 + 0.5D - z) / hRadius;
 
 								if (normDx * normDx + normDz * normDz < 1.0D) {
 									for (int blockY = maxY; blockY > minY; --blockY) {
-										double normDy = ((double) (blockY - 1) + 0.5D - y) / vRadius;
+										double normDy = (blockY - 1 + 0.5D - y) / vRadius;
 
-										if ((normDx * normDx + normDz * normDz)
-												* (double) radiusSqScaleByHeight[blockY - 1]
+										if ((normDx * normDx + normDz * normDz) * radiusSqScaleByHeight[blockY - 1]
 												+ normDy * normDy / 6.0D < 1.0D) {
 											int block = chunk.get(blockX, blockY, blockZ);
 

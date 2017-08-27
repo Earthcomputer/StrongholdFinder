@@ -23,7 +23,7 @@ public class GenLayerSmooth extends GenLayer {
 			for (int dx = 0; dx < width; ++dx) {
 				int valueLeft = parentValues[dx + (dz + 1) * parentWidth];
 				int valueRight = parentValues[dx + 2 + (dz + 1) * parentWidth];
-				int valueUp = parentValues[dx + 1 + (dz) * parentWidth];
+				int valueUp = parentValues[dx + 1 + dz * parentWidth];
 				int valueDown = parentValues[dx + 1 + (dz + 2) * parentWidth];
 				int valueHere = parentValues[dx + 1 + (dz + 1) * parentWidth];
 

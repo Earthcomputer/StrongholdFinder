@@ -69,7 +69,7 @@ public class Blocks {
 			BEETROOTS = 207,
 			GRASS_PATH = 208;
 	// @formatter:on
-	
+
 	private static final boolean[] BLOCKS_MOVEMENT = new boolean[256];
 	static {
 		BLOCKS_MOVEMENT[AIR] = false;
@@ -143,7 +143,7 @@ public class Blocks {
 	public static boolean isLiquid(int block) {
 		return block == WATER || block == LAVA || block == FLOWING_WATER || block == FLOWING_LAVA;
 	}
-	
+
 	public static boolean blocksMovement(int block) {
 		if (block < 0 || block >= 256) {
 			return false;

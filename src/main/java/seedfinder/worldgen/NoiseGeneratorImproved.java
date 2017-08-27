@@ -5,7 +5,7 @@ import java.util.Random;
 public class NoiseGeneratorImproved {
 
 	// TODO: deobfuscate
-	
+
 	private final int[] permutations;
 	public double xCoord;
 	public double yCoord;
@@ -66,27 +66,27 @@ public class NoiseGeneratorImproved {
 			double d16 = 1 / noiseScale;
 
 			for (int j2 = 0; j2 < xSize; ++j2) {
-				double d17 = xOffset + (double) j2 * xScale + this.xCoord;
+				double d17 = xOffset + j2 * xScale + this.xCoord;
 				int i6 = (int) d17;
 
-				if (d17 < (double) i6) {
+				if (d17 < i6) {
 					--i6;
 				}
 
 				int k2 = i6 & 255;
-				d17 = d17 - (double) i6;
+				d17 = d17 - i6;
 				double d18 = d17 * d17 * d17 * (d17 * (d17 * 6 - 15) + 10);
 
 				for (int j6 = 0; j6 < zSize; ++j6) {
-					double d19 = zOffset + (double) j6 * zScale + this.zCoord;
+					double d19 = zOffset + j6 * zScale + this.zCoord;
 					int k6 = (int) d19;
 
-					if (d19 < (double) k6) {
+					if (d19 < k6) {
 						--k6;
 					}
 
 					int l6 = k6 & 255;
-					d19 = d19 - (double) k6;
+					d19 = d19 - k6;
 					double d20 = d19 * d19 * d19 * (d19 * (d19 * 6 - 15) + 10);
 					i5 = this.permutations[k2] + 0;
 					j5 = this.permutations[i5] + l6;
@@ -117,39 +117,39 @@ public class NoiseGeneratorImproved {
 			double d4 = 0;
 
 			for (int l2 = 0; l2 < xSize; ++l2) {
-				double d5 = xOffset + (double) l2 * xScale + this.xCoord;
+				double d5 = xOffset + l2 * xScale + this.xCoord;
 				int i3 = (int) d5;
 
-				if (d5 < (double) i3) {
+				if (d5 < i3) {
 					--i3;
 				}
 
 				int j3 = i3 & 255;
-				d5 = d5 - (double) i3;
+				d5 = d5 - i3;
 				double d6 = d5 * d5 * d5 * (d5 * (d5 * 6 - 15) + 10);
 
 				for (int k3 = 0; k3 < zSize; ++k3) {
-					double d7 = zOffset + (double) k3 * zScale + this.zCoord;
+					double d7 = zOffset + k3 * zScale + this.zCoord;
 					int l3 = (int) d7;
 
-					if (d7 < (double) l3) {
+					if (d7 < l3) {
 						--l3;
 					}
 
 					int i4 = l3 & 255;
-					d7 = d7 - (double) l3;
+					d7 = d7 - l3;
 					double d8 = d7 * d7 * d7 * (d7 * (d7 * 6 - 15) + 10);
 
 					for (int j4 = 0; j4 < ySize; ++j4) {
-						double d9 = yOffset + (double) j4 * yScale + this.yCoord;
+						double d9 = yOffset + j4 * yScale + this.yCoord;
 						int k4 = (int) d9;
 
-						if (d9 < (double) k4) {
+						if (d9 < k4) {
 							--k4;
 						}
 
 						int l4 = k4 & 255;
-						d9 = d9 - (double) k4;
+						d9 = d9 - k4;
 						double d10 = d9 * d9 * d9 * (d9 * (d9 * 6 - 15) + 10);
 
 						if (j4 == 0 || l4 != k) {

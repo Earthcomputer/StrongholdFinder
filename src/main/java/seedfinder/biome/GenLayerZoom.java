@@ -27,7 +27,7 @@ public class GenLayerZoom extends GenLayer {
 			int valueBottomLeft = parentValues[(dz + 1) * parentWidth];
 
 			for (int dx = 0; dx < parentWidth - 1; dx++) {
-				initChunkSeed((dx + parentX) << 1, (dz + parentZ) << 1);
+				initChunkSeed(dx + parentX << 1, dz + parentZ << 1);
 
 				int valueTopRight = parentValues[dx + 1 + dz * parentWidth];
 				int valueBottomRight = parentValues[dx + 1 + (dz + 1) * parentWidth];

@@ -28,9 +28,9 @@ public class CaveGen {
 		}
 
 		for (int i = 0; i < tries; i++) {
-			double x = (double) (chunkX * 16 + rand.nextInt(16));
-			double y = (double) rand.nextInt(rand.nextInt(120) + 8);
-			double z = (double) (chunkZ * 16 + rand.nextInt(16));
+			double x = chunkX * 16 + rand.nextInt(16);
+			double y = rand.nextInt(rand.nextInt(120) + 8);
+			double z = chunkZ * 16 + rand.nextInt(16);
 			int numTunnels = 1;
 
 			if (rand.nextInt(4) == 0) {
@@ -61,8 +61,8 @@ public class CaveGen {
 	protected static void addTunnel(long tunnelSeed, int originalX, int originalZ, Storage3D chunk, double x, double y,
 			double z, float maxRadius, float yaw, float pitch, int startDistance, int endDistance,
 			double widthToHeightRatio) {
-		double chunkCenterX = (double) (originalX * 16 + 8);
-		double chunkCenterZ = (double) (originalZ * 16 + 8);
+		double chunkCenterX = originalX * 16 + 8;
+		double chunkCenterZ = originalZ * 16 + 8;
 		float deltaYaw = 0.0F;
 		float deltaPitch = 0.0F;
 		Random rand = new Random(tunnelSeed);
@@ -84,14 +84,13 @@ public class CaveGen {
 		boolean steep = rand.nextInt(6) == 0;
 
 		for (int distance = startDistance; distance < endDistance; distance++) {
-			double hRadius = 1.5D
-					+ (double) (MathHelper.sin((float) distance * (float) Math.PI / (float) endDistance) * maxRadius);
+			double hRadius = 1.5D + MathHelper.sin(distance * (float) Math.PI / endDistance) * maxRadius;
 			double vRadius = hRadius * widthToHeightRatio;
 			float dh = MathHelper.cos(pitch);
 			float dy = MathHelper.sin(pitch);
-			x += (double) (MathHelper.cos(yaw) * dh);
-			y += (double) dy;
-			z += (double) (MathHelper.sin(yaw) * dh);
+			x += MathHelper.cos(yaw) * dh;
+			y += dy;
+			z += MathHelper.sin(yaw) * dh;
 
 			if (steep) {
 				pitch = pitch * 0.92F;
@@ -108,18 +107,18 @@ public class CaveGen {
 
 			if (!isRoom && distance == tJunctionDistance && maxRadius > 1.0F && endDistance > 0) {
 				addTunnel(rand.nextLong(), originalX, originalZ, chunk, x, y, z, rand.nextFloat() * 0.5F + 0.5F,
-						yaw - ((float) Math.PI / 2F), pitch / 3.0F, distance, endDistance, 1.0D);
+						yaw - (float) Math.PI / 2F, pitch / 3.0F, distance, endDistance, 1.0D);
 				addTunnel(rand.nextLong(), originalX, originalZ, chunk, x, y, z, rand.nextFloat() * 0.5F + 0.5F,
-						yaw + ((float) Math.PI / 2F), pitch / 3.0F, distance, endDistance, 1.0D);
+						yaw + (float) Math.PI / 2F, pitch / 3.0F, distance, endDistance, 1.0D);
 				return;
 			}
 
 			if (isRoom || rand.nextInt(4) != 0) {
 				double dxFromCenter = x - chunkCenterX;
 				double dzFromCenter = z - chunkCenterZ;
-				double distanceLeft = (double) (endDistance - distance);
-				double d7 = (double) (maxRadius + 2.0F + 16.0F); // TODO: what
-																	// is this?
+				double distanceLeft = endDistance - distance;
+				double d7 = maxRadius + 2.0F + 16.0F; // TODO: what
+														// is this?
 
 				if (dxFromCenter * dxFromCenter + dzFromCenter * dzFromCenter - distanceLeft * distanceLeft > d7 * d7) {
 					return;
@@ -181,14 +180,14 @@ public class CaveGen {
 
 					if (!foundWater) {
 						for (int blockX = minX; blockX < maxX; blockX++) {
-							double normDx = ((double) (blockX + originalX * 16) + 0.5D - x) / hRadius;
+							double normDx = (blockX + originalX * 16 + 0.5D - x) / hRadius;
 
 							for (int blockZ = minZ; blockZ < maxZ; blockZ++) {
-								double normDz = ((double) (blockZ + originalZ * 16) + 0.5D - z) / hRadius;
+								double normDz = (blockZ + originalZ * 16 + 0.5D - z) / hRadius;
 
 								if (normDx * normDx + normDz * normDz < 1.0D) {
 									for (int blockY = maxY; blockY > minY; blockY--) {
-										double normDy = ((double) (blockY - 1) + 0.5D - y) / vRadius;
+										double normDy = (blockY - 1 + 0.5D - y) / vRadius;
 
 										if (normDy > -0.7D
 												&& normDx * normDx + normDy * normDy + normDz * normDz < 1.0D) {

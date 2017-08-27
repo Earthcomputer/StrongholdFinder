@@ -30,7 +30,7 @@ public class GenLayerAddIsland extends GenLayer {
 				initChunkSeed(dx + x, dz + z);
 
 				if (valueHere != 0
-						|| (valueLeftUp == 0 && valueRightUp == 0 && valueLeftDown == 0 && valueRightDown == 0)) {
+						|| valueLeftUp == 0 && valueRightUp == 0 && valueLeftDown == 0 && valueRightDown == 0) {
 					if (valueHere > 0
 							&& (valueLeftUp == 0 || valueRightUp == 0 || valueLeftDown == 0 || valueRightDown == 0)) {
 						if (nextInt(5) == 0) {
@@ -75,7 +75,7 @@ public class GenLayerAddIsland extends GenLayer {
 				}
 			}
 		}
-		
+
 		return values;
 	}
 

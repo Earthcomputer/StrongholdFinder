@@ -119,7 +119,7 @@ public class GenLayerHills extends GenLayer {
 				}
 			}
 		}
-		
+
 		return values;
 	}
 

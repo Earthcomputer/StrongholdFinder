@@ -153,12 +153,12 @@ public class WorldGen {
 		depthRegion = depthNoise.generateNoiseOctaves(depthRegion, x, z, 5, 5, 200.0, 200.0, 0.5);
 		final float coordScale = 684.412F;
 		final float heightScale = 684.412F;
-		mainNoiseRegion = mainPerlinNoise.generateNoiseOctaves(mainNoiseRegion, x, y, z, 5, 33, 5,
-				(double) (coordScale / 80), (double) (heightScale / 160), (double) (coordScale / 80));
-		minLimitRegion = minLimitPerlinNoise.generateNoiseOctaves(minLimitRegion, x, y, z, 5, 33, 5,
-				(double) coordScale, (double) heightScale, (double) coordScale);
-		maxLimitRegion = maxLimitPerlinNoise.generateNoiseOctaves(maxLimitRegion, x, y, z, 5, 33, 5,
-				(double) coordScale, (double) heightScale, (double) coordScale);
+		mainNoiseRegion = mainPerlinNoise.generateNoiseOctaves(mainNoiseRegion, x, y, z, 5, 33, 5, coordScale / 80,
+				heightScale / 160, coordScale / 80);
+		minLimitRegion = minLimitPerlinNoise.generateNoiseOctaves(minLimitRegion, x, y, z, 5, 33, 5, coordScale,
+				heightScale, coordScale);
+		maxLimitRegion = maxLimitPerlinNoise.generateNoiseOctaves(maxLimitRegion, x, y, z, 5, 33, 5, coordScale,
+				heightScale, coordScale);
 		int heightMapIdx = 0;
 		int depthRegionIdx = 0;
 
@@ -217,15 +217,14 @@ public class WorldGen {
 				}
 
 				depthRegionIdx++;
-				double biomeHeight = (double) weightedAvgHeight;
-				double biomeHeightVariation = (double) weightedAvgVariation;
+				double biomeHeight = weightedAvgHeight;
+				double biomeHeightVariation = weightedAvgVariation;
 				biomeHeight = biomeHeight + heightOffset * 0.2D;
 				biomeHeight = biomeHeight * 8.5 / 8.0D;
 				double surface = 8.5 + biomeHeight * 4.0D;
 
 				for (int highY = 0; highY < 33; highY++) {
-					double offsetFromSurface = ((double) highY - surface) * 12.0 * 128.0D / 256.0D
-							/ biomeHeightVariation;
+					double offsetFromSurface = (highY - surface) * 12.0 * 128.0D / 256.0D / biomeHeightVariation;
 
 					if (offsetFromSurface < 0.0D) {
 						offsetFromSurface *= 4.0D;
@@ -237,7 +236,7 @@ public class WorldGen {
 					double density = MathHelper.clampedLerp(minDensity, maxDensity, densitySlide) - offsetFromSurface;
 
 					if (highY > 29) {
-						double overrideWeight = (double) ((float) (highY - 29) / 3.0F);
+						double overrideWeight = (highY - 29) / 3.0F;
 						density = density * (1.0D - overrideWeight) + -10.0D * overrideWeight;
 					}
 
@@ -267,7 +266,7 @@ public class WorldGen {
 		rand.setSeed(worldSeed);
 		long a = rand.nextLong();
 		long b = rand.nextLong();
-		rand.setSeed((chunkX * a) ^ (chunkZ * b) ^ worldSeed);
+		rand.setSeed(chunkX * a ^ chunkZ * b ^ worldSeed);
 	}
 
 	/**

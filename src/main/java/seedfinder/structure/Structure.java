@@ -22,7 +22,7 @@ public abstract class Structure {
 	public AABB getBoundingBox() {
 		return boundingBox;
 	}
-	
+
 	public boolean isValid() {
 		return true;
 	}

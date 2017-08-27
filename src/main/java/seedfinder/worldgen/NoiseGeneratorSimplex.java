@@ -45,7 +45,7 @@ public class NoiseGeneratorSimplex {
 	}
 
 	private static double dot(int[] a, double b0, double b1) {
-		return (double) a[0] * b0 + (double) a[1] * b1;
+		return a[0] * b0 + a[1] * b1;
 	}
 
 	public double getValue(double x, double y) {
@@ -53,9 +53,9 @@ public class NoiseGeneratorSimplex {
 		double s = (x + y) * F2;
 		int i = fastFloor(x + s);
 		int j = fastFloor(y + s);
-		double t = (double) (i + j) * G2;
-		double X0 = (double) i - t;
-		double Y0 = (double) j - t;
+		double t = (i + j) * G2;
+		double X0 = i - t;
+		double Y0 = j - t;
 		double x0 = x - X0;
 		double y0 = y - Y0;
 		int i1;
@@ -69,8 +69,8 @@ public class NoiseGeneratorSimplex {
 			j1 = 1;
 		}
 
-		double x1 = x0 - (double) i1 + G2;
-		double y1 = y0 - (double) j1 + G2;
+		double x1 = x0 - i1 + G2;
+		double y1 = y0 - j1 + G2;
 		double x2 = x0 - 1.0D + 2.0D * G2;
 		double y2 = y0 - 1.0D + 2.0D * G2;
 		i &= 255;
@@ -116,16 +116,16 @@ public class NoiseGeneratorSimplex {
 		int index = 0;
 
 		for (int dy = 0; dy < height; dy++) {
-			double yHere = (y + (double) dy) * p_151606_10_ + this.yo;
+			double yHere = (y + dy) * p_151606_10_ + this.yo;
 
 			for (int dx = 0; dx < width; dx++) {
-				double xHere = (x + (double) dx) * p_151606_8_ + this.xo;
+				double xHere = (x + dx) * p_151606_8_ + this.xo;
 				double s = (xHere + yHere) * F2;
 				int i = fastFloor(xHere + s);
 				int j = fastFloor(yHere + s);
-				double d6 = (double) (i + j) * G2;
-				double X0 = (double) i - d6;
-				double X1 = (double) j - d6;
+				double d6 = (i + j) * G2;
+				double X0 = i - d6;
+				double X1 = j - d6;
 				double x0 = xHere - X0;
 				double y0 = yHere - X1;
 				int i1;
@@ -139,8 +139,8 @@ public class NoiseGeneratorSimplex {
 					j1 = 1;
 				}
 
-				double x1 = x0 - (double) i1 + G2;
-				double y1 = y0 - (double) j1 + G2;
+				double x1 = x0 - i1 + G2;
+				double y1 = y0 - j1 + G2;
 				double x2 = x0 - 1.0D + 2.0D * G2;
 				double y2 = y0 - 1.0D + 2.0D * G2;
 				i &= 255;

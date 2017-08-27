@@ -23,7 +23,7 @@ public class BiomeProvider {
 
 		int[] values = finalBiomeGenerator.getValues(x, z, width, height);
 		System.arraycopy(values, 0, biomes, 0, width * height);
-		
+
 		return biomes;
 	}
 
