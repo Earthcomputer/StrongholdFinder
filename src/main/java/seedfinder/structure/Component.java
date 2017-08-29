@@ -242,6 +242,38 @@ public abstract class Component {
 	}
 
 	/**
+	 * Fills a dome with blocks
+	 */
+	protected void fillDome(Storage3D world, AABB bounds, int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+			int block, boolean preserveAir) {
+		float xSize = maxX - minX + 1;
+		float ySize = maxY - minY + 1;
+		float zSize = maxZ - minZ + 1;
+		float xRadius = minX + xSize / 2f;
+		float zRadius = minZ + zSize / 2f;
+
+		for (int y = minY; y <= maxY; y++) {
+			float normDy = (y - minY) / ySize;
+
+			for (int x = minX; x <= maxX; x++) {
+				float normDx = (x - xRadius) / (xSize * 0.5f);
+
+				for (int z = minZ; z <= maxZ; z++) {
+					float normDz = (z - zRadius) / (zSize * 0.5f);
+
+					if (!preserveAir || !Blocks.isAir(getBlock(world, x, y, z, bounds))) {
+						float normDistSq = normDx * normDx + normDy * normDy + normDz * normDz;
+
+						if (normDistSq <= 1.05f) {
+							setBlock(world, block, x, y, z, bounds);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Clears a column of blocks from the current position upwards, replacing it
 	 * with air. Stops once air is reached.
 	 */
@@ -308,13 +340,19 @@ public abstract class Component {
 		}
 	}
 
-	protected void generateMaybeBox(AABB bounds, Random rand, float chance, int xMin, int yMin, int zMin, int xMax,
-			int yMax, int zMax, boolean requireNonAir, int requiredSkylight) {
+	protected void randomlyFill(Storage3D world, AABB bounds, Random rand, float chance, int xMin, int yMin,
+			int zMin, int xMax, int yMax, int zMax, int wallBlock, int centerBlock, boolean requireNonAir) {
 		for (int y = yMin; y <= yMax; ++y) {
 			for (int x = xMin; x <= xMax; ++x) {
 				for (int z = zMin; z <= zMax; ++z) {
-					// TODO place block
-					rand.nextFloat();
+					if (rand.nextFloat() <= chance
+							&& (!requireNonAir || !Blocks.isAir(getBlock(world, x, y, z, bounds)))) {
+						if (y == yMin || y == yMax || x == xMin || x == xMax || z == zMin || z == zMax) {
+							setBlock(world, wallBlock, x, y, z, bounds);
+						} else {
+							setBlock(world, centerBlock, x, y, z, bounds);
+						}
+					}
 				}
 			}
 		}

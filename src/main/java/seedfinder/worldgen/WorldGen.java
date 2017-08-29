@@ -8,6 +8,7 @@ import seedfinder.MathHelper;
 import seedfinder.Storage3D;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.structure.MineshaftFinder;
 import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.VillageFinder;
 
@@ -71,7 +72,7 @@ public class WorldGen {
 		CaveGen.generate(rand, seed, x, z, chunk);
 		RavineGen.generate(rand, seed, x, z, chunk);
 
-		// TODO: mineshaft gen
+		MineshaftFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 		VillageFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 		StrongholdFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 
@@ -81,7 +82,7 @@ public class WorldGen {
 	public static void populateOverworld(Random rand, long seed, int x, int z, Storage3D chunk) {
 		setSeedForPopulation(rand, seed, x, z);
 
-		// TODO: mineshafts
+		MineshaftFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		VillageFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		StrongholdFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 	}

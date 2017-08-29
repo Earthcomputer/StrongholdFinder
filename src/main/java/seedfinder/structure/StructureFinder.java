@@ -88,6 +88,10 @@ public abstract class StructureFinder {
 			for (int z = Math.min(fromPos.getZ(), toPos.getZ()), ze = Math.max(fromPos.getZ(),
 					toPos.getZ()); z <= ze; z++) {
 				ChunkPos pos = new ChunkPos(x, z);
+
+				WorldGen.setMapGenSeedForChunk(rand, worldSeed, x, z);
+				rand.nextInt(); // Only God and Mojang know...
+
 				if (isStructureAt(rand, worldSeed, pos)) {
 					structurePositions.add(pos);
 				}
@@ -96,7 +100,9 @@ public abstract class StructureFinder {
 	}
 
 	/**
-	 * Returns whether a structure can start at the given coordinates
+	 * Returns whether a structure can start at the given coordinates.
+	 * Implementations of this method are allowed to assume that the given RNG
+	 * has already been initialized according to the chunk position.
 	 */
 	public abstract boolean isStructureAt(Random rand, long worldSeed, ChunkPos pos);
 
@@ -120,7 +126,7 @@ public abstract class StructureFinder {
 		// We need a separate RNG here with separate seeds
 		Random structureLayoutRand = new Random();
 		structurePositions.forEach(structurePos -> {
-			WorldGen.setMapGenSeedForChunk(structureLayoutRand, worldSeed, chunkX, chunkZ);
+			WorldGen.setMapGenSeedForChunk(structureLayoutRand, worldSeed, structurePos.getX(), structurePos.getZ());
 			Structure structure = getStructure(structureLayoutRand, structurePos);
 
 			if (structure.isValid() && structure.getBoundingBox().intersectsWith(popX, popZ, popX + 15, popZ + 15)) {

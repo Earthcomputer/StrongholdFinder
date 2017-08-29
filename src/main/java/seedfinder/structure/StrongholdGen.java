@@ -538,7 +538,7 @@ public class StrongholdGen {
 			// entrance door
 			placeDoor(world, rand, bounds, entryDoorType, 4, 1, 0);
 			// cobwebs
-			generateMaybeBox(bounds, rand, 0.07F, 2, 1, 1, 11, 4, 13, false, 0);
+			randomlyFill(world, bounds, rand, 0.07F, 2, 1, 1, 11, 4, 13, Blocks.WEB, Blocks.WEB, false);
 
 			for (int z = 1; z <= 13; z++) {
 				if ((z - 1) % 4 == 0) {

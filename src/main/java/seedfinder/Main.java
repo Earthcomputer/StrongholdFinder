@@ -7,6 +7,7 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 import seedfinder.biome.BiomeProvider;
+import seedfinder.structure.MineshaftFinder;
 import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.StrongholdFinder.Stronghold;
 import seedfinder.structure.StrongholdGen;
@@ -40,6 +41,7 @@ public class Main {
 		// Initialize things to the seed
 		WorldGen.setWorldSeed(random, seed);
 		BiomeProvider.setWorldSeed(seed);
+		MineshaftFinder.INSTANCE.reset();
 		VillageFinder.INSTANCE.reset();
 		StrongholdFinder.INSTANCE.reset();
 

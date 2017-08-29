@@ -22,6 +22,10 @@ public abstract class Structure {
 	public AABB getBoundingBox() {
 		return boundingBox;
 	}
+	
+	public void setBoundingBox(AABB boundingBox) {
+		this.boundingBox = boundingBox;
+	}
 
 	public boolean isValid() {
 		return true;
