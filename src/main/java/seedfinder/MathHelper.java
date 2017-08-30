@@ -1,6 +1,8 @@
 package seedfinder;
 
+import java.util.List;
 import java.util.Random;
+import java.util.function.ToIntFunction;
 
 /**
  * Helper math functions, mainly here to ensure exact equivalence with the
@@ -41,6 +43,14 @@ public class MathHelper {
 	}
 
 	/**
+	 * Computes the floor of a float and returns it as an int
+	 */
+	public static int floor(float value) {
+		int floor = (int) value;
+		return value < floor ? floor - 1 : floor;
+	}
+
+	/**
 	 * Interpolates between <tt>a</tt> and <tt>b</tt>, using the given
 	 * <tt>slide</tt>, and clamps the result between <tt>a</tt> and </tt>b</tt>
 	 */
@@ -73,6 +83,34 @@ public class MathHelper {
 	 */
 	public static int randomRange(Random rand, int min, int max) {
 		return min >= max ? min : rand.nextInt(max - min + 1) + min;
+	}
+
+	/**
+	 * Returns a random value between minimum, inclusive, and maximum,
+	 * exclusive.
+	 */
+	public static float randomRange(Random rand, float min, float max) {
+		return min >= max ? min : rand.nextFloat() * (max - min) + min;
+	}
+
+	/**
+	 * Returns a random element in the given list, weighted by each element's
+	 * weight, according to the given weight extractor function.
+	 */
+	public static <T> T weightedRandom(Random rand, List<T> list, ToIntFunction<T> weightExtractor) {
+		int weight = list.stream().mapToInt(weightExtractor).sum();
+		if (weight <= 0) {
+			return null;
+		}
+		weight = rand.nextInt(weight);
+		for (int i = 0, e = list.size(); i < e; i++) {
+			T t = list.get(i);
+			weight -= weightExtractor.applyAsInt(t);
+			if (weight < 0) {
+				return t;
+			}
+		}
+		return null;
 	}
 
 }
