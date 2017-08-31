@@ -8,8 +8,8 @@ import java.util.Random;
 import seedfinder.Blocks;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.loot.LootTables;
 import seedfinder.util.AABB;
-import seedfinder.util.BlockPos;
 import seedfinder.util.EnumFacing;
 import seedfinder.util.MathHelper;
 import seedfinder.util.Storage3D;
@@ -874,7 +874,7 @@ public class VillageGen {
 			// chest
 			if (!hasMadeChest && bounds.contains(getXWithOffset(5, 5), getYWithOffset(1), getZWithOffset(5, 5))) {
 				hasMadeChest = true;
-				generateChest(world, bounds, rand, 5, 1, 5);
+				generateChest(world, bounds, rand, 5, 1, 5, LootTables.VILLAGE_BLACKSMITH);
 			}
 
 			// stairs onto entrance
@@ -1583,7 +1583,7 @@ public class VillageGen {
 					int yOff = getYWithOffset(y);
 					int zOff = getZWithOffset(x + dx, z);
 
-					if (!bounds.contains(new BlockPos(xOff, yOff, zOff))) {
+					if (!bounds.contains(xOff, yOff, zOff)) {
 						break;
 					}
 

@@ -10,6 +10,7 @@ import seedfinder.biome.Biomes;
 import seedfinder.task.CountEyesTask;
 import seedfinder.task.DoneEnoughException;
 import seedfinder.task.Task;
+import seedfinder.util.AABB;
 import seedfinder.util.BlockPos;
 import seedfinder.util.ChunkPos;
 import seedfinder.util.Storage3D;
@@ -125,6 +126,11 @@ public class StrongholdFinder extends StructureFinder {
 
 		BlockPos minPortalPos = stronghold.getPortalRoom().getPortalPos();
 		BlockPos maxPortalPos = minPortalPos.add(4, 0, 4);
+		if (accurate) {
+			WorldGen.createAndPopulateBBOverworld(world, rand, worldSeed, new AABB(minPortalPos.getX(), 0,
+					minPortalPos.getZ(), maxPortalPos.getX(), 255, maxPortalPos.getZ()));
+			return;
+		}
 		int minChunkX = minPortalPos.getX() - 8 >> 4;
 		int minChunkZ = minPortalPos.getZ() - 8 >> 4;
 		int maxChunkX = maxPortalPos.getX() - 8 >> 4;
@@ -147,12 +153,8 @@ public class StrongholdFinder extends StructureFinder {
 		for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
 			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
 				try {
-					if (accurate) {
-						WorldGen.populateOverworld(rand, worldSeed, chunkX, chunkZ, world);
-					} else {
-						WorldGen.setSeedForPopulation(rand, worldSeed, chunkX, chunkZ);
-						stronghold.populate(world, rand, chunkX, chunkZ);
-					}
+					WorldGen.setSeedForPopulation(rand, worldSeed, chunkX, chunkZ);
+					stronghold.populate(world, rand, chunkX, chunkZ);
 				} catch (DoneEnoughException e) {
 				}
 			}

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import seedfinder.Blocks;
+import seedfinder.loot.LootTables;
 import seedfinder.structure.Component.BlockSelector;
 import seedfinder.task.CountEyesTask;
 import seedfinder.task.DoneEnoughException;
@@ -217,10 +218,9 @@ public class StrongholdGen {
 			}
 
 			// chest
-			if (!hasMadeChest
-					&& bounds.contains(new BlockPos(getXWithOffset(3, 3), getYWithOffset(2), getZWithOffset(3, 3)))) {
+			if (!hasMadeChest && bounds.contains(getXWithOffset(3, 3), getYWithOffset(2), getZWithOffset(3, 3))) {
 				hasMadeChest = true;
-				generateChest(world, bounds, rand, 3, 2, 3);
+				generateChest(world, bounds, rand, 3, 2, 3, LootTables.STRONGHOLD_CORRIDOR);
 			}
 
 			return true;
@@ -618,12 +618,12 @@ public class StrongholdGen {
 			}
 
 			// chest on bottom floor
-			generateChest(world, bounds, rand, 3, 3, 5);
+			generateChest(world, bounds, rand, 3, 3, 5, LootTables.STRONGHOLD_LIBRARY);
 
 			if (isTallLibrary) {
 				// chest on top floor
 				setBlock(world, Blocks.AIR, 12, 9, 1, bounds);
-				generateChest(world, bounds, rand, 12, 8, 1);
+				generateChest(world, bounds, rand, 12, 8, 1, LootTables.STRONGHOLD_LIBRARY);
 			}
 
 			return true;
@@ -1009,7 +1009,7 @@ public class StrongholdGen {
 				setBlock(world, Blocks.LADDER, 9, 3, 3, bounds);
 
 				// chest
-				generateChest(world, bounds, rand, 3, 4, 8);
+				generateChest(world, bounds, rand, 3, 4, 8, LootTables.STRONGHOLD_CROSSING);
 
 			case EMPTY:
 				break;

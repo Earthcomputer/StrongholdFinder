@@ -8,6 +8,8 @@ import seedfinder.biome.Biomes;
 import seedfinder.structure.MineshaftFinder;
 import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.VillageFinder;
+import seedfinder.task.DoneEnoughException;
+import seedfinder.util.AABB;
 import seedfinder.util.ChunkPos;
 import seedfinder.util.MathHelper;
 import seedfinder.util.Storage3D;
@@ -85,6 +87,35 @@ public class WorldGen {
 		MineshaftFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		VillageFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		StrongholdFinder.INSTANCE.populate(chunk, rand, seed, x, z);
+	}
+
+	public static void createAndPopulatePosOverworld(Storage3D world, Random rand, long seed, int blockX, int blockZ) {
+		createAndPopulateBBOverworld(world, rand, seed, new AABB(blockX, 0, blockZ, blockX, 255, blockZ));
+	}
+
+	public static void createAndPopulateBBOverworld(Storage3D world, Random rand, long seed, AABB bounds) {
+		int minChunkX = bounds.getMinX() - 8 >> 4;
+		int minChunkZ = bounds.getMinZ() - 8 >> 4;
+		int maxChunkX = bounds.getMaxX() - 8 >> 4;
+		int maxChunkZ = bounds.getMaxZ() - 8 >> 4;
+
+		world.eraseAndAllocate(minChunkX << 4, 0, minChunkZ << 4, (maxChunkX + 1 << 4) + 15, 255,
+				(maxChunkZ + 1 << 4) + 15);
+
+		for (int chunkX = minChunkX; chunkX <= maxChunkX + 1; chunkX++) {
+			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ + 1; chunkZ++) {
+				createOverworld(rand, seed, chunkX, chunkZ, world);
+			}
+		}
+
+		for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+				try {
+					populateOverworld(rand, seed, chunkX, chunkZ, world);
+				} catch (DoneEnoughException e) {
+				}
+			}
+		}
 	}
 
 	private static void setBlocksInChunk(int x, int z, Storage3D chunk) {

@@ -34,7 +34,7 @@ public abstract class Task {
 	}
 
 	public static enum Type {
-		COUNT_EYES
+		COUNT_EYES, GATHER_CHESTS
 	}
 
 }

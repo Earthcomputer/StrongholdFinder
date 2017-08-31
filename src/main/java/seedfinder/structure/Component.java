@@ -1,9 +1,13 @@
 package seedfinder.structure;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import seedfinder.Blocks;
+import seedfinder.loot.LootTable;
+import seedfinder.task.GatherChestsTask;
+import seedfinder.task.Task;
 import seedfinder.util.AABB;
 import seedfinder.util.EnumFacing;
 import seedfinder.util.Storage3D;
@@ -327,13 +331,16 @@ public abstract class Component {
 	 * Places a chest in the world at the given coordinates relative to this
 	 * component's position and orientation
 	 */
-	protected boolean generateChest(Storage3D world, AABB bounds, Random rand, int x, int y, int z) {
+	protected boolean generateChest(Storage3D world, AABB bounds, Random rand, int x, int y, int z,
+			LootTable lootTable) {
 		int xOff = getXWithOffset(x, z);
 		int yOff = getYWithOffset(y);
 		int zOff = getZWithOffset(x, z);
 		if (bounds.contains(xOff, yOff, zOff)) {
 			world.set(xOff, yOff, zOff, Blocks.CHEST);
-			rand.nextLong(); // for the loot table
+			long lootSeed = rand.nextLong();
+			Optional<GatherChestsTask> task = Task.getCurrentTask(Task.Type.GATHER_CHESTS);
+			task.ifPresent(it -> it.addChest(xOff, yOff, zOff, lootTable, lootSeed));
 			return true;
 		} else {
 			return false;

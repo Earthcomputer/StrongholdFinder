@@ -2,9 +2,14 @@ package seedfinder.structure;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import seedfinder.Blocks;
+import seedfinder.loot.LootTable;
+import seedfinder.loot.LootTables;
+import seedfinder.task.GatherChestsTask;
+import seedfinder.task.Task;
 import seedfinder.util.AABB;
 import seedfinder.util.EnumFacing;
 import seedfinder.util.Storage3D;
@@ -250,7 +255,8 @@ public class MineshaftGen {
 		}
 
 		@Override
-		protected boolean generateChest(Storage3D world, AABB bounds, Random rand, int x, int y, int z) {
+		protected boolean generateChest(Storage3D world, AABB bounds, Random rand, int x, int y, int z,
+				LootTable lootTable) {
 			int xOff = getXWithOffset(x, z);
 			int yOff = getYWithOffset(y);
 			int zOff = getZWithOffset(x, z);
@@ -259,7 +265,9 @@ public class MineshaftGen {
 					&& !Blocks.isAir(world.get(xOff, yOff - 1, zOff))) {
 				world.set(xOff, yOff, zOff, Blocks.RAIL);
 				// minecart chest
-				rand.nextLong();
+				long lootSeed = rand.nextLong();
+				Optional<GatherChestsTask> task = Task.getCurrentTask(Task.Type.GATHER_CHESTS);
+				task.ifPresent(it -> it.addChest(xOff, yOff, zOff, lootTable, lootSeed));
 				return true;
 			} else {
 				return false;
@@ -309,11 +317,11 @@ public class MineshaftGen {
 
 				// chest(s)
 				if (rand.nextInt(100) == 0) {
-					generateChest(world, bounds, rand, 2, 0, z - 1);
+					generateChest(world, bounds, rand, 2, 0, z - 1, LootTables.ABANDONED_MINESHAFT);
 				}
 
 				if (rand.nextInt(100) == 0) {
-					generateChest(world, bounds, rand, 0, 0, z + 1);
+					generateChest(world, bounds, rand, 0, 0, z + 1, LootTables.ABANDONED_MINESHAFT);
 				}
 
 				// spawner
