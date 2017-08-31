@@ -1,3 +1,56 @@
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
+
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	// libraries only required at runtime and only packaged into the gui JAR
+	gui
+}
+
+dependencies {
+	gui 'com.seaglasslookandfeel:seaglasslookandfeel:0.2.1'
+	
+	configurations.runtime.extendsFrom(configurations.gui)
+}
+
+jar {
+	from {
+		configurations.compile.collect {
+			it.isDirectory() ? it : zipTree(it)
+		}
+	}
+	manifest {
+		attributes 'Main-Class': 'seedfinder.Main'
+	}
+	baseName = 'seedfinder-nogui'
+	exclude 'seedfinder/gui/**'
+}
+
+task guiJar(type: Jar) {
+	from (sourceSets.main.output)
+	from {
+		configurations.compile.collect {
+			it.isDirectory() ? it : zipTree(it)
+		}
+	}
+	from {
+		configurations.gui.collect {
+			it.isDirectory() ? it : zipTree(it)
+		}
+	}
+	manifest {
+		attributes 'Main-Class': 'seedfinder.gui.GuiMain'
+	}
+	baseName = 'seedfinder-gui'
+}
+guiJar.dependsOn classes
+build.dependsOn guiJar
+
+group = 'seedfinder'
+version = '1.0'
+
+sourceCompatibility = 1.8
