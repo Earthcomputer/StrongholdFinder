@@ -12,7 +12,8 @@ configurations {
 }
 
 dependencies {
-	gui 'com.seaglasslookandfeel:seaglasslookandfeel:0.2.1'
+	gui 'com.weblookandfeel:weblaf-core:1.2.8'
+	gui 'com.weblookandfeel:weblaf-ui:1.2.8'
 	
 	configurations.runtime.extendsFrom(configurations.gui)
 }
