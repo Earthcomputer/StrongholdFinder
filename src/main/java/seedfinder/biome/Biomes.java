@@ -9,7 +9,7 @@ import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 
 import seedfinder.Blocks;
-import seedfinder.Storage3D;
+import seedfinder.util.Storage3D;
 import seedfinder.worldgen.NoiseGeneratorPerlin;
 import seedfinder.worldgen.WorldGen;
 

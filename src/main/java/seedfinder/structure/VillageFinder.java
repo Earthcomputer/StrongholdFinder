@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import seedfinder.ChunkPos;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.util.ChunkPos;
 import seedfinder.worldgen.WorldGen;
 
 public class VillageFinder extends StructureFinder {

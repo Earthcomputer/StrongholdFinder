@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import seedfinder.ChunkPos;
-import seedfinder.Storage3D;
+import seedfinder.util.ChunkPos;
+import seedfinder.util.Storage3D;
 import seedfinder.worldgen.WorldGen;
 
 /**

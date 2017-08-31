@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.util;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import seedfinder.ItemStack;
-import seedfinder.MathHelper;
+import seedfinder.util.MathHelper;
 
 public class LootTablePool {
 

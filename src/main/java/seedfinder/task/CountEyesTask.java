@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.task;
 
 public class CountEyesTask extends Task {
 

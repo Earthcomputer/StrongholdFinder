@@ -2,9 +2,9 @@ package seedfinder.structure;
 
 import java.util.Random;
 
-import seedfinder.ChunkPos;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.util.ChunkPos;
 
 public class MineshaftFinder extends StructureFinder {
 

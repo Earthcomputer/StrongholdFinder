@@ -3,14 +3,14 @@ package seedfinder.worldgen;
 import java.util.Random;
 
 import seedfinder.Blocks;
-import seedfinder.ChunkPos;
-import seedfinder.MathHelper;
-import seedfinder.Storage3D;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
 import seedfinder.structure.MineshaftFinder;
 import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.VillageFinder;
+import seedfinder.util.ChunkPos;
+import seedfinder.util.MathHelper;
+import seedfinder.util.Storage3D;
 
 public class WorldGen {
 

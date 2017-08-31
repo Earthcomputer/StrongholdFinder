@@ -243,7 +243,7 @@ public class Blocks {
 			return OPAQUE_CUBE[block];
 		}
 	}
-	
+
 	public static int getOpacity(int block) {
 		if (block < 0 || block >= 256) {
 			return 0;

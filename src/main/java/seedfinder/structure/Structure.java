@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import seedfinder.AABB;
-import seedfinder.Storage3D;
+import seedfinder.util.AABB;
+import seedfinder.util.Storage3D;
 
 /**
  * Represents a configuration of structure components (rooms, corridors, etc.)
@@ -22,7 +22,7 @@ public abstract class Structure {
 	public AABB getBoundingBox() {
 		return boundingBox;
 	}
-	
+
 	public void setBoundingBox(AABB boundingBox) {
 		this.boundingBox = boundingBox;
 	}

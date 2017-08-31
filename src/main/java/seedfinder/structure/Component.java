@@ -3,10 +3,10 @@ package seedfinder.structure;
 import java.util.List;
 import java.util.Random;
 
-import seedfinder.AABB;
 import seedfinder.Blocks;
-import seedfinder.EnumFacing;
-import seedfinder.Storage3D;
+import seedfinder.util.AABB;
+import seedfinder.util.EnumFacing;
+import seedfinder.util.Storage3D;
 
 /**
  * A structure component is a 'piece' of a large structure, e.g. a room
@@ -340,8 +340,8 @@ public abstract class Component {
 		}
 	}
 
-	protected void randomlyFill(Storage3D world, AABB bounds, Random rand, float chance, int xMin, int yMin,
-			int zMin, int xMax, int yMax, int zMax, int wallBlock, int centerBlock, boolean requireNonAir) {
+	protected void randomlyFill(Storage3D world, AABB bounds, Random rand, float chance, int xMin, int yMin, int zMin,
+			int xMax, int yMax, int zMax, int wallBlock, int centerBlock, boolean requireNonAir) {
 		for (int y = yMin; y <= yMax; ++y) {
 			for (int x = xMin; x <= xMax; ++x) {
 				for (int z = zMin; z <= zMax; ++z) {

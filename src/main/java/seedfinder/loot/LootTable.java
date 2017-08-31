@@ -26,7 +26,7 @@ public class LootTable {
 		}
 
 		context.removeLootTable(this);
-		
+
 		return stacks;
 	}
 

@@ -1,9 +1,9 @@
 package seedfinder.worldgen;
 
 import seedfinder.Blocks;
-import seedfinder.EnumFacing;
-import seedfinder.Storage2D;
-import seedfinder.Storage3D;
+import seedfinder.util.EnumFacing;
+import seedfinder.util.Storage2D;
+import seedfinder.util.Storage3D;
 
 public class SkylightCalculator {
 

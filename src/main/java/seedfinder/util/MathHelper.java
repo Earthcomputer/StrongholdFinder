@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.util;
 
 import java.util.List;
 import java.util.Random;

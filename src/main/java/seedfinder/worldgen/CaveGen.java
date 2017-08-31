@@ -3,8 +3,8 @@ package seedfinder.worldgen;
 import java.util.Random;
 
 import seedfinder.Blocks;
-import seedfinder.MathHelper;
-import seedfinder.Storage3D;
+import seedfinder.util.MathHelper;
+import seedfinder.util.Storage3D;
 
 public class CaveGen {
 

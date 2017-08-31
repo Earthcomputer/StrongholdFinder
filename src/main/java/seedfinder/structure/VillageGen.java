@@ -5,14 +5,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import seedfinder.AABB;
-import seedfinder.BlockPos;
 import seedfinder.Blocks;
-import seedfinder.EnumFacing;
-import seedfinder.MathHelper;
-import seedfinder.Storage3D;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.util.AABB;
+import seedfinder.util.BlockPos;
+import seedfinder.util.EnumFacing;
+import seedfinder.util.MathHelper;
+import seedfinder.util.Storage3D;
 
 public class VillageGen {
 

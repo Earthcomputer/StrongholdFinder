@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.util;
 
 public final class ChunkPos {
 

@@ -3,7 +3,7 @@ package seedfinder.worldgen;
 import java.util.Arrays;
 import java.util.Random;
 
-import seedfinder.MathHelper;
+import seedfinder.util.MathHelper;
 
 public class NoiseGeneratorOctaves {
 

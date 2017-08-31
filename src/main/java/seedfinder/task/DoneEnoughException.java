@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.task;
 
 public class DoneEnoughException extends RuntimeException {
 

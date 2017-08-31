@@ -3,8 +3,8 @@ package seedfinder.biome;
 import java.util.Random;
 import java.util.Set;
 
-import seedfinder.BlockPos;
-import seedfinder.IntCache;
+import seedfinder.util.BlockPos;
+import seedfinder.util.IntCache;
 
 public class BiomeProvider {
 

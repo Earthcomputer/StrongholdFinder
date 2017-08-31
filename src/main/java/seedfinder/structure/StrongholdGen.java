@@ -5,15 +5,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import seedfinder.AABB;
-import seedfinder.BlockPos;
 import seedfinder.Blocks;
-import seedfinder.CountEyesTask;
-import seedfinder.DoneEnoughException;
-import seedfinder.EnumFacing;
-import seedfinder.Storage3D;
-import seedfinder.Task;
 import seedfinder.structure.Component.BlockSelector;
+import seedfinder.task.CountEyesTask;
+import seedfinder.task.DoneEnoughException;
+import seedfinder.task.Task;
+import seedfinder.util.AABB;
+import seedfinder.util.BlockPos;
+import seedfinder.util.EnumFacing;
+import seedfinder.util.Storage3D;
 
 public class StrongholdGen {
 

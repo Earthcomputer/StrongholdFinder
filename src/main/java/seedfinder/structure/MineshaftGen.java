@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import seedfinder.AABB;
 import seedfinder.Blocks;
-import seedfinder.EnumFacing;
-import seedfinder.Storage3D;
+import seedfinder.util.AABB;
+import seedfinder.util.EnumFacing;
+import seedfinder.util.Storage3D;
 import seedfinder.worldgen.SkylightCalculator;
 
 public class MineshaftGen {

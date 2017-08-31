@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.util;
 
 import java.util.ArrayList;
 import java.util.List;

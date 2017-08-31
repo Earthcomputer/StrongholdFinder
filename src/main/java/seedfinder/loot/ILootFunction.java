@@ -7,7 +7,7 @@ import java.util.Random;
 import seedfinder.Enchantments;
 import seedfinder.ItemStack;
 import seedfinder.Items;
-import seedfinder.MathHelper;
+import seedfinder.util.MathHelper;
 
 @FunctionalInterface
 public interface ILootFunction {

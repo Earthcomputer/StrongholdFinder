@@ -2,7 +2,7 @@ package seedfinder.loot;
 
 import java.util.Random;
 
-import seedfinder.MathHelper;
+import seedfinder.util.MathHelper;
 
 public class RandomValueRange {
 

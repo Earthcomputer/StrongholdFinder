@@ -1,6 +1,6 @@
 package seedfinder.biome;
 
-import seedfinder.IntCache;
+import seedfinder.util.IntCache;
 
 public class GenLayerRandomValues extends GenLayer {
 

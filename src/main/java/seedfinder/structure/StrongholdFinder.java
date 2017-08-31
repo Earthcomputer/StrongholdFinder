@@ -5,14 +5,14 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
-import seedfinder.BlockPos;
-import seedfinder.ChunkPos;
-import seedfinder.CountEyesTask;
-import seedfinder.DoneEnoughException;
-import seedfinder.Storage3D;
-import seedfinder.Task;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
+import seedfinder.task.CountEyesTask;
+import seedfinder.task.DoneEnoughException;
+import seedfinder.task.Task;
+import seedfinder.util.BlockPos;
+import seedfinder.util.ChunkPos;
+import seedfinder.util.Storage3D;
 import seedfinder.worldgen.WorldGen;
 
 public class StrongholdFinder extends StructureFinder {

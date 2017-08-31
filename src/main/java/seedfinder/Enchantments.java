@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import seedfinder.util.MathHelper;
+
 public class Enchantments {
 
 	// @formatter:off

@@ -12,6 +12,9 @@ import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.StrongholdFinder.Stronghold;
 import seedfinder.structure.StrongholdGen;
 import seedfinder.structure.VillageFinder;
+import seedfinder.util.BlockPos;
+import seedfinder.util.ChunkPos;
+import seedfinder.util.Storage3D;
 import seedfinder.worldgen.WorldGen;
 
 public class Main {

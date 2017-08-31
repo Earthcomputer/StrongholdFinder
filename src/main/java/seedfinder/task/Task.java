@@ -1,4 +1,4 @@
-package seedfinder;
+package seedfinder.task;
 
 import java.util.Optional;
 
