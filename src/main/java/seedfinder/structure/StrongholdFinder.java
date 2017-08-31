@@ -140,7 +140,7 @@ public class StrongholdFinder extends StructureFinder {
 
 		// A 3x3 chunk area is the maximum number of chunks that might be
 		// generated
-		world.eraseAndAllocate(minX, 0, minZ, minX + 47, 255, minZ + 47);
+		world.reallocate(minX, 0, minZ, minX + 47, 255, minZ + 47);
 
 		// Generate the chunks
 		for (int chunkX = minChunkX; chunkX <= maxChunkX + 1; chunkX++) {

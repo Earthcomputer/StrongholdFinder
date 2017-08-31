@@ -139,6 +139,33 @@ public class Storage2D {
 	}
 
 	/**
+	 * Sets all the values in this 2D area to the default value without
+	 * de-allocating, then moves the allocated area to the specified area,
+	 * expanding the internal array if it is too small.
+	 */
+	public void reallocate(int minX, int minY, int maxX, int maxY) {
+		if (maxX < minX) {
+			throw new IllegalArgumentException("maxX < minX");
+		}
+		if (maxY < minY) {
+			throw new IllegalArgumentException("maxY < minY");
+		}
+
+		width = maxX - minX + 1;
+		height = maxY - minY + 1;
+		int minLength = width * height;
+		// allocate a new array if the current length is too short
+		if (values.length < minLength) {
+			values = new int[minLength];
+		}
+		// set all values to the default
+		Arrays.fill(values, 0, minLength, _default);
+
+		this.minX = minX;
+		this.minY = minY;
+	}
+
+	/**
 	 * Ensures all the points in the area bounded by the rectangle with opposite
 	 * corners (minX, minY) and (maxX + 1, maxY + 1) are allocated so that they
 	 * do not need to be re-allocated during successive
@@ -156,8 +183,10 @@ public class Storage2D {
 			// we don't have to care about pre-existing values.
 			width = maxX - minX + 1;
 			height = maxY - minY + 1;
-			values = new int[width * height];
-			Arrays.fill(values, _default);
+			if (values.length < width * height) {
+				values = new int[width * height];
+			}
+			Arrays.fill(values, 0, width * height, _default);
 			this.minX = minX;
 			this.minY = minY;
 		} else {
@@ -175,7 +204,10 @@ public class Storage2D {
 	public void ensureAllocated(int x, int y) {
 		if (width == 0) {
 			// we don't have to care about pre-existing values
-			values = new int[] { _default };
+			if (values.length == 0) {
+				values = new int[1];
+			}
+			values[0] = _default;
 			minX = x;
 			minY = y;
 			width = 1;
@@ -229,12 +261,13 @@ public class Storage2D {
 			// We need to add extra rows on the top
 			int rowsToAdd = minY - y;
 			int slotsToAdd = rowsToAdd * width;
-			int[] newValues = new int[values.length + slotsToAdd];
+			int oldLength = width * height;
+			int[] newValues = new int[oldLength + slotsToAdd];
 
 			for (int i = 0; i < slotsToAdd; i++) {
 				newValues[i] = _default;
 			}
-			System.arraycopy(values, 0, newValues, slotsToAdd, values.length);
+			System.arraycopy(values, 0, newValues, slotsToAdd, oldLength);
 
 			minY = y;
 			height += rowsToAdd;
@@ -243,9 +276,10 @@ public class Storage2D {
 			// We need to add extra rows on the bottom
 			int rowsToAdd = y - (minY + height) + 1;
 			int[] newValues = new int[width * (height + rowsToAdd)];
+			int oldLength = width * height;
 
-			System.arraycopy(values, 0, newValues, 0, values.length);
-			for (int i = values.length; i < newValues.length; i++) {
+			System.arraycopy(values, 0, newValues, 0, oldLength);
+			for (int i = oldLength; i < newValues.length; i++) {
 				newValues[i] = _default;
 			}
 
@@ -262,6 +296,16 @@ public class Storage2D {
 		int rowsOffTop = 0, rowsOffBottom = 0, colsOffLeft = 0, colsOffRight = 0;
 		int index;
 		int[] newValues;
+		// Remove any extra allocation inside values
+		if (values.length != width * height) {
+			newValues = new int[width * height];
+			System.arraycopy(values, 0, newValues, 0, newValues.length);
+			values = newValues;
+		}
+		/*
+		 * For the rest of the method we can assume that values.length == width
+		 * * height
+		 */
 
 		// Get rows to prune off top
 		for (index = 0; index < values.length; index++) {

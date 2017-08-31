@@ -132,6 +132,39 @@ public class Storage3D {
 	}
 
 	/**
+	 * Sets all the values in this 3D volume to the default value without
+	 * de-allocating, then moves all the allocated volume to the specified
+	 * volume, expanding the internal array if it is too small.
+	 */
+	public void reallocate(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+		if (maxX < minX) {
+			throw new IllegalArgumentException("maxX < minX");
+		}
+		if (maxY < minY) {
+			throw new IllegalArgumentException("maxY < minY");
+		}
+		if (maxZ < minZ) {
+			throw new IllegalArgumentException("maxZ < minZ");
+		}
+
+		xSize = maxX - minX + 1;
+		ySize = maxY - minY + 1;
+		zSize = maxZ - minZ + 1;
+
+		int minLength = xSize * ySize * zSize;
+		// allocate a new array if the current length is too short
+		if (values.length < minLength) {
+			values = new int[minLength];
+		}
+		// set all values to the default
+		Arrays.fill(values, 0, minLength, _default);
+
+		this.minX = minX;
+		this.minY = minY;
+		this.minZ = minZ;
+	}
+
+	/**
 	 * Ensures all the points in the volume bounded by the cuboid with opposite
 	 * corners (minX, minY, minZ) and (maxX + 1, maxY + 1, maxZ + 1) are
 	 * allocated so that they do not need to be reallocated during successive
@@ -153,8 +186,11 @@ public class Storage3D {
 			xSize = maxX - minX + 1;
 			ySize = maxY - minY + 1;
 			zSize = maxZ - minZ + 1;
-			values = new int[xSize * ySize * zSize];
-			Arrays.fill(values, _default);
+			int minLength = xSize * ySize * zSize;
+			if (values.length < minLength) {
+				values = new int[minLength];
+			}
+			Arrays.fill(values, 0, minLength, _default);
 			this.minX = minX;
 			this.minY = minY;
 			this.minZ = minZ;
@@ -176,7 +212,10 @@ public class Storage3D {
 			minX = x;
 			minY = y;
 			minZ = z;
-			values = new int[] { _default };
+			if (values.length == 0) {
+				values = new int[1];
+			}
+			values[0] = _default;
 			xSize = 1;
 			ySize = 1;
 			zSize = 1;
@@ -272,12 +311,13 @@ public class Storage3D {
 			// We need to add extra z-oriented planes on the front
 			int linesToAdd = minZ - z;
 			int slotsToAdd = linesToAdd * xSize * ySize;
-			int[] newValues = new int[values.length + slotsToAdd];
+			int oldLength = xSize * ySize * zSize;
+			int[] newValues = new int[oldLength + slotsToAdd];
 
 			for (int i = 0; i < slotsToAdd; i++) {
 				newValues[i] = _default;
 			}
-			System.arraycopy(values, 0, newValues, slotsToAdd, values.length);
+			System.arraycopy(values, 0, newValues, slotsToAdd, oldLength);
 
 			minZ = z;
 			zSize += linesToAdd;
@@ -286,9 +326,10 @@ public class Storage3D {
 			// We need to add extra z-oriented planes on the back
 			int linesToAdd = z - (minZ + zSize) + 1;
 			int[] newValues = new int[xSize * ySize * (zSize + linesToAdd)];
+			int oldLength = xSize * ySize * zSize;
 
-			System.arraycopy(values, 0, newValues, 0, values.length);
-			for (int i = values.length; i < newValues.length; i++) {
+			System.arraycopy(values, 0, newValues, 0, oldLength);
+			for (int i = oldLength; i < newValues.length; i++) {
 				newValues[i] = _default;
 			}
 
@@ -307,6 +348,16 @@ public class Storage3D {
 		int xTimesY = xSize * ySize;
 		int index;
 		int[] newValues;
+		// Remove any extra allocation inside values
+		if (values.length != xTimesY * zSize) {
+			newValues = new int[xTimesY * zSize];
+			System.arraycopy(values, 0, newValues, 0, newValues.length);
+			values = newValues;
+		}
+		/*
+		 * For the rest of this method we can assume that values.length == xSize
+		 * * ySize * zSize
+		 */
 
 		// Get planes to prune off front
 		for (index = 0; index < values.length; index++) {

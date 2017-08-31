@@ -99,8 +99,7 @@ public class WorldGen {
 		int maxChunkX = bounds.getMaxX() - 8 >> 4;
 		int maxChunkZ = bounds.getMaxZ() - 8 >> 4;
 
-		world.eraseAndAllocate(minChunkX << 4, 0, minChunkZ << 4, (maxChunkX + 1 << 4) + 15, 255,
-				(maxChunkZ + 1 << 4) + 15);
+		world.reallocate(minChunkX << 4, 0, minChunkZ << 4, (maxChunkX + 1 << 4) + 15, 255, (maxChunkZ + 1 << 4) + 15);
 
 		for (int chunkX = minChunkX; chunkX <= maxChunkX + 1; chunkX++) {
 			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ + 1; chunkZ++) {

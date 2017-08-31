@@ -11,10 +11,10 @@ public class SkylightCalculator {
 	private static Storage3D skylight = new Storage3D(0);
 
 	public static Storage3D calcSkylight(Storage3D world, int minX, int minZ, int maxX, int maxZ) {
-		heightMap.eraseAndAllocate(minX, minZ, maxX, maxZ);
+		heightMap.reallocate(minX, minZ, maxX, maxZ);
 		int maxHeight = Integer.MIN_VALUE;
 
-		skylight.eraseAndAllocate(minX, 0, minZ, maxX, 255, maxZ);
+		skylight.reallocate(minX, 0, minZ, maxX, 255, maxZ);
 
 		// Calculate height map and set all blocks with direct sky access to 15
 		for (int x = minX; x <= maxX; x++) {
