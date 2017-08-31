@@ -1,5 +1,9 @@
 package seedfinder;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +31,15 @@ public class Main {
 	private static int eyesThreshold;
 	private static int totalThreshold;
 
+	private static void printUsage() {
+		System.out.println("java -jar seed_finder.jar <start_seed> <eyes_threshold> [total_threshold]");
+		System.out.println("java -jar seed_finder.jar seed <seed>");
+		System.out.println("java -jar seed_finder.jar legacy <old_output_file> <eyes_threshold>");
+	}
+
 	public static void main(String[] args) {
 		if (args.length < 2) {
-			System.out.println("java -jar seed_finder.jar <start_seed> <eyes_threshold> [total_threshold]");
-			System.out.println("java -jar seed_finder.jar seed <seed>");
+			printUsage();
 			return;
 		}
 
@@ -40,11 +49,59 @@ public class Main {
 			eyesThreshold = 0;
 			totalThreshold = 0;
 			printSeedInfo(new Random(), new Storage3D(Blocks.AIR));
+		} else if ("legacy".equalsIgnoreCase(args[0])) {
+			if (args.length < 3) {
+				printUsage();
+				return;
+			}
+			eyesThreshold = Integer.parseInt(args[2]);
+			totalThreshold = eyesThreshold;
+			try {
+				translateLegacy(new File(args[1]));
+			} catch (IOException e) {
+				System.err.println("An I/O error occurred when reading from that file");
+				e.printStackTrace();
+			}
 		} else {
 			seed = Long.parseLong(args[0]);
 			eyesThreshold = Integer.parseInt(args[1]);
 			totalThreshold = args.length == 2 ? eyesThreshold : Integer.parseInt(args[2]);
 			findSeeds();
+		}
+	}
+
+	private static void translateLegacy(File file) throws IOException {
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			Random rand = new Random();
+			Storage3D world = new Storage3D(Blocks.AIR);
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				// A "------------------" separator indicated the start of a
+				// seed
+				if (!"------------------".equals(line)) {
+					continue;
+				}
+
+				if ((line = reader.readLine()) == null) {
+					break;
+				}
+				if (!line.startsWith("Seed: ")) {
+					System.err.println("Parse error:");
+					System.err.println("  Expected \"Seed: <number>\" after divider");
+					continue;
+				}
+				line = line.substring(6);
+				try {
+					seed = Long.parseLong(line);
+				} catch (NumberFormatException e) {
+					System.err.println("Parse error:");
+					System.err.println("  Expected \"Seed: <number>\" after divider");
+					continue;
+				}
+
+				printSeedInfo(rand, world);
+			}
 		}
 	}
 
