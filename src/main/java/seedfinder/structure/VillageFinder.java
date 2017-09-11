@@ -7,9 +7,8 @@ import java.util.Set;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
 import seedfinder.util.ChunkPos;
-import seedfinder.worldgen.WorldGen;
 
-public class VillageFinder extends StructureFinder {
+public class VillageFinder extends ScatteredStructureFinder {
 
 	public static final VillageFinder INSTANCE = new VillageFinder();
 
@@ -17,69 +16,12 @@ public class VillageFinder extends StructureFinder {
 			Biomes.TAIGA);
 
 	private VillageFinder() {
+		super(10387312);
 	}
 
 	@Override
-	public void findStructurePositions(Random rand, long worldSeed, ChunkPos fromPos, ChunkPos toPos) {
-		/*
-		 * Villages are generated in 'sections', a 32x32 chunk square in the
-		 * world. There is a maximum of 1 village per section.
-		 */
-
-		int minChunkX = Math.min(fromPos.getX(), toPos.getX());
-		int maxChunkX = Math.max(fromPos.getX(), toPos.getX());
-		int minChunkZ = Math.min(fromPos.getZ(), toPos.getZ());
-		int maxChunkZ = Math.max(fromPos.getZ(), toPos.getZ());
-
-		final int sectionSize = 32;
-
-		// Calculate the section positions. If negative, we have to subtract
-		// some more because we don't want the division being truncated to 0 and
-		// overlapping another section.
-		int minSectionX = minChunkX;
-		if (minSectionX < 0) {
-			minSectionX -= sectionSize - 1;
-		}
-		minSectionX /= sectionSize;
-
-		int maxSectionX = maxChunkX;
-		if (maxSectionX < 0) {
-			maxSectionX -= sectionSize - 1;
-		}
-		maxSectionX /= sectionSize;
-
-		int minSectionZ = minChunkZ;
-		if (minSectionZ < 0) {
-			minSectionZ -= sectionSize - 1;
-		}
-		minSectionZ /= sectionSize;
-
-		int maxSectionZ = maxChunkZ;
-		if (maxSectionZ < 0) {
-			maxSectionZ -= sectionSize - 1;
-		}
-		maxSectionZ /= sectionSize;
-
-		// Get the actual village positions
-		for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
-			for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
-				WorldGen.setRandomSeed(rand, worldSeed, sectionX, sectionZ, 10387312);
-				int chunkX = sectionX * sectionSize;
-				int chunkZ = sectionZ * sectionSize;
-				chunkX += rand.nextInt(sectionSize - 8);
-				chunkZ += rand.nextInt(sectionSize - 8);
-
-				if (BiomeProvider.areBiomesViable(chunkX * 16 + 8, chunkZ * 16 + 8, 0, ALLOWED_BIOMES)) {
-					structurePositions.add(new ChunkPos(chunkX, chunkZ));
-				}
-			}
-		}
-	}
-
-	@Override
-	public boolean isStructureAt(Random rand, long worldSeed, ChunkPos pos) {
-		findStructurePositions(rand, worldSeed, pos, pos);
-		return structurePositions.contains(pos);
+	protected boolean isValidPosition(Random rand, int chunkX, int chunkZ) {
+		return BiomeProvider.areBiomesViable(chunkX * 16 + 8, chunkZ * 16 + 8, 0, ALLOWED_BIOMES);
 	}
 
 	@Override

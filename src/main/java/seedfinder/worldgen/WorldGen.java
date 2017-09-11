@@ -7,6 +7,7 @@ import seedfinder.biome.BiomeProvider;
 import seedfinder.biome.Biomes;
 import seedfinder.structure.MineshaftFinder;
 import seedfinder.structure.StrongholdFinder;
+import seedfinder.structure.TempleFinder;
 import seedfinder.structure.VillageFinder;
 import seedfinder.task.DoneEnoughException;
 import seedfinder.util.AABB;
@@ -77,6 +78,7 @@ public class WorldGen {
 		MineshaftFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 		VillageFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 		StrongholdFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
+		TempleFinder.INSTANCE.findStructurePositionsAffectingChunk(rand, seed, pos);
 
 		chunk.moveAll(x * 16, 0, z * 16);
 	}
@@ -87,6 +89,7 @@ public class WorldGen {
 		MineshaftFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		VillageFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 		StrongholdFinder.INSTANCE.populate(chunk, rand, seed, x, z);
+		TempleFinder.INSTANCE.populate(chunk, rand, seed, x, z);
 	}
 
 	public static void createAndPopulatePosOverworld(Storage3D world, Random rand, long seed, int blockX, int blockZ) {

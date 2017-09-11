@@ -87,7 +87,17 @@ public class Items {
 			GOLDEN_RAIL = "golden_rail",
 			DETECTOR_RAIL = "detector_rail",
 			ACTIVATOR_RAIL = "activator_rail",
-			TORCH = "torch";
+			TORCH = "torch",
+			EMERALD = "emerald",
+			BONE = "bone",
+			SPIDER_EYE = "spider_eye",
+			ROTTEN_FLESH = "rotten_flesh",
+			GUNPOWDER = "gunpowder",
+			STRING = "string",
+			SAND = "sand",
+			ARROW = "arrow",
+			GOLD_NUGGET = "gold_nugget",
+			WHEAT = "wheat";
 	// @formatter:on
 
 	public static boolean isArmor(String item) {

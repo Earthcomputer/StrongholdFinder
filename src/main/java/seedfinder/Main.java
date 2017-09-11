@@ -14,9 +14,11 @@ import java.util.Set;
 import seedfinder.biome.BiomeProvider;
 import seedfinder.loot.LootTables;
 import seedfinder.structure.MineshaftFinder;
+import seedfinder.structure.NBTStructures;
 import seedfinder.structure.StrongholdFinder;
 import seedfinder.structure.StrongholdFinder.Stronghold;
 import seedfinder.structure.StrongholdGen;
+import seedfinder.structure.TempleFinder;
 import seedfinder.structure.VillageFinder;
 import seedfinder.task.GatherChestsTask;
 import seedfinder.task.Task;
@@ -40,6 +42,14 @@ public class Main {
 	public static void main(String[] args) {
 		if (args.length < 2) {
 			printUsage();
+			return;
+		}
+
+		try {
+			NBTStructures.load();
+		} catch (IOException e) {
+			System.err.println("Failed to load NBT structures");
+			e.printStackTrace();
 			return;
 		}
 
@@ -112,6 +122,7 @@ public class Main {
 		MineshaftFinder.INSTANCE.reset();
 		VillageFinder.INSTANCE.reset();
 		StrongholdFinder.INSTANCE.reset();
+		TempleFinder.INSTANCE.reset();
 
 		// Get stronghold positions
 		StrongholdFinder.INSTANCE.findFirstLayerPositions(random, seed);
